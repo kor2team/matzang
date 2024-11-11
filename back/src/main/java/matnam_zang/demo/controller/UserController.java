@@ -138,7 +138,24 @@ public class UserController {
             return ResponseEntity.badRequest().body("Error creating comment: " + e.getMessage());
         }
     }
+
     
+    // 리뷰 삭제
+    @DeleteMapping("/delete-review/{review_id}")
+    public ResponseEntity<?> deleteReview(
+        @RequestHeader("Authorization") String token,
+        @PathVariable("review_id") Long reviewId){
+            try {
+                // deleteReview 서비스 메서드 호출
+                userService.deleteReview(token, reviewId);
+    
+                // 성공적인 응답 반환
+                return ResponseEntity.ok("Delete Success");
+            } catch (RuntimeException e) {
+                return ResponseEntity.badRequest().body("Error creating comment: " + e.getMessage());
+            }
+        }
+
     //내가 쓴 userRecipe
     @GetMapping("/myRecipes")
     public ResponseEntity<?> findRecipe(@RequestHeader("Authorization") String token) {
@@ -155,6 +172,5 @@ public class UserController {
     }
 
 
-    // 좋아요
 
 }

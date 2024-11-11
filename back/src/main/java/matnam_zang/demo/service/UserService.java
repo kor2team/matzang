@@ -83,7 +83,7 @@ public class UserService {
     // 회원가입
     public void registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        // user.setRole(User.Role.USER);  // 기본 ROLE_USER 설정
+        // user.setRole(User.Role.USER); // 기본 ROLE_USER 설정
         userRepository.save(user);
     }
 
@@ -91,18 +91,18 @@ public class UserService {
     public String loginUser(String username, String password) {
         // Optional<User>로 user 조회
         Optional<User> optionalUser = userRepository.findByUsername(username);
-        
+
         // User가 존재하는지 확인
         if (optionalUser.isPresent()) {
             User user = optionalUser.get(); // 값 추출
-            
+
             // 비밀번호가 일치하는지 확인
             if (passwordEncoder.matches(password, user.getPassword())) {
                 // 로그인 성공 시 JWT 토큰 생성
                 return tokenProvider.createToken(user.getUsername());
             }
         }
-        
+
         // username이나 비밀번호가 잘못된 경우 예외 발생
         throw new RuntimeException("Invalid username or password");
     }
@@ -203,32 +203,32 @@ public class UserService {
         if (tokenProvider.isTokenExpired(bearerToken)) {
             throw new RuntimeException("Token has expired");
         }
-    
+
         // 2. 토큰에서 사용자명 추출
         String username = tokenProvider.getUsernameFromToken(bearerToken);
-    
+
         // 3. 수정할 레시피 찾기
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
-    
+
         // 4. 게시물 작성자가 요청한 사용자와 일치하는지 확인
         if (!recipe.getUser().getUsername().equals(username)) {
             throw new RuntimeException("User not authorized to update this recipe");
         }
-    
+
         // 5. 수정할 데이터만 갱신
         recipe.setTitle(updatedRecipeDto.getTitle());
         recipe.setRecipeDescription(updatedRecipeDto.getRecipeDescription());
         recipe.setCookTime(updatedRecipeDto.getCookTime());
         recipe.setDifficultyLevel(updatedRecipeDto.getDifficultyLevel());
-    
+
         // 6. 기존 데이터 삭제
         // 기존 이미지 삭제 (명시적으로 삭제)
         imageRepository.deleteAll(recipe.getImages());
         ingredientRepository.deleteAll(recipe.getIngredients());
         instructionRepository.deleteAll(recipe.getInstructions());
         categoryRepository.deleteAll(recipe.getCategories());
-    
+
         // 7. 새로운 이미지 추가
         List<Image> newImages = new ArrayList<>();
         for (String imageUrl : updatedRecipeDto.getImages()) {
@@ -238,7 +238,7 @@ public class UserService {
             newImages.add(image);
         }
         recipe.setImages(newImages); // 새로운 이미지 리스트 설정
-    
+
         // 8. 새로운 재료 추가
         List<Ingredient> newIngredients = new ArrayList<>();
         for (String ingredientName : updatedRecipeDto.getIngredients()) {
@@ -248,7 +248,7 @@ public class UserService {
             newIngredients.add(ingredient);
         }
         recipe.setIngredients(newIngredients);
-    
+
         // 9. 새로운 조리과정 추가
         List<Instruction> newInstructions = new ArrayList<>();
         int stepNumber = 1;
@@ -260,7 +260,7 @@ public class UserService {
             newInstructions.add(instruction);
         }
         recipe.setInstructions(newInstructions); // 새로운 조리과정 리스트 설정
-    
+
         // 10. 새로운 카테고리 추가
         List<Category> newCategories = new ArrayList<>();
         for (String categoryName : updatedRecipeDto.getCategories()) {
@@ -270,10 +270,10 @@ public class UserService {
             newCategories.add(category);
         }
         recipe.setCategories(newCategories); // 새로운 카테고리 리스트 설정
-    
+
         // 11. 레시피 저장
         Recipe updatedRecipe = recipeRepository.save(recipe); // Cascade 옵션으로 인해 관계형 엔티티도 자동으로 저장됩니다.
-    
+
         return updatedRecipe;
     }
 
@@ -311,7 +311,6 @@ public class UserService {
         }
 
         String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
-        
 
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
@@ -334,38 +333,60 @@ public class UserService {
     // 리뷰 수정
     public void updateReview(String token, Long reviewId, ReviewDto reviewDto) {
         String bearerToken = token.substring(7);
-    
+
         // 1. 토큰 검증
         if (tokenProvider.isTokenExpired(bearerToken)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired");
         }
-    
+
         String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
-    
+
         // 2. 사용자 찾기
         Optional<User> optionalUser = userRepository.findByUsername(username);
         User user = optionalUser.orElseThrow(() -> new RuntimeException("User not found"));
-    
+
         // 3. 수정하려는 리뷰 찾기
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found"));
-    
+
         // 4. 작성자 검증
         if (!review.getUser().equals(user)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to update this review");
         }
-    
+
         // 5. 리뷰 수정
         review.setComment(reviewDto.getReview()); // ReviewDto의 review로 수정
         reviewRepository.save(review); // 수정된 리뷰 저장
     }
 
     // 리뷰 삭제
+    public void deleteReview(String token, Long reviewId) {
+        String bearerToken = token.substring(7);
+
+        // 1. 토큰 검증
+        if (tokenProvider.isTokenExpired(bearerToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired");
+        }
+
+        String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
+
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 삭제를 원하는 리뷰 찾기
+        reviewRepository.findById(reviewId)
+                .filter(review -> review.getUser().equals(user))
+                .ifPresentOrElse(
+                        review -> reviewRepository.delete(review),
+                        () -> {
+                            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                    "Review not found or you are not authorized to delete this review");
+                        });
+
+    }
 
     // 좋아요 누름
 
     // 좋아요 해제
-
 
     public List<MyRecipeDto> findRecipes(String token) {
         String username = tokenProvider.getUsernameFromToken(token);
@@ -373,7 +394,7 @@ public class UserService {
         if (username == null) {
             throw new RuntimeException("Invalid token or user not authenticated");
         }
-        
+
         Optional<User> optionalUser = userRepository.findByUsername(username); // User 정보 조회
         System.out.println("This is optionalUser" + optionalUser);
 
@@ -385,25 +406,27 @@ public class UserService {
 
             // 사용자 ID로 필터링하여 레시피를 조회합니다.
             List<Recipe> recipes = recipeRepository.findAll().stream()
-                .filter(recipe -> recipe.getUser().getUserId().equals(user.getUserId()))
-                .collect(Collectors.toList());
+                    .filter(recipe -> recipe.getUser().getUserId().equals(user.getUserId()))
+                    .collect(Collectors.toList());
 
             // 각 레시피에 대한 이미지를 미리 조회합니다.
             Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()
-                .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
+                    .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
 
             // 레시피 DTO 리스트를 생성합니다.
             List<MyRecipeDto> myRecipeDtos = recipes.stream()
-            .map(recipe -> {
-                List<Image> images = recipeImagesMap.getOrDefault(recipe.getRecipeId(), Collections.emptyList());
-                List<ImageDto> imageDtos = images.stream()
-                    .map(image -> new ImageDto(image.getImageId(), image.getImageUrl()))
+                    .map(recipe -> {
+                        List<Image> images = recipeImagesMap.getOrDefault(recipe.getRecipeId(),
+                                Collections.emptyList());
+                        List<ImageDto> imageDtos = images.stream()
+                                .map(image -> new ImageDto(image.getImageId(), image.getImageUrl()))
+                                .collect(Collectors.toList());
+                        return new MyRecipeDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos,
+                                recipe.getRecipeDescription(), recipe.getUser().getUserId(), null, false, null);
+                    })
                     .collect(Collectors.toList());
-                return new MyRecipeDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos, recipe.getRecipeDescription(), recipe.getUser().getUserId(), null, false, null);
-            })
-            .collect(Collectors.toList());
             return myRecipeDtos;
-        }else {
+        } else {
             throw new RuntimeException("User not found");
         }
     }
