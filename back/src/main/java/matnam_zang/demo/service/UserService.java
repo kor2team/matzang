@@ -1,22 +1,11 @@
 package matnam_zang.demo.service;
 
-import matnam_zang.demo.entity.Category;
-import matnam_zang.demo.entity.Image;
-import matnam_zang.demo.entity.Ingredient;
-import matnam_zang.demo.entity.Instruction;
-import matnam_zang.demo.entity.Recipe;
-import matnam_zang.demo.entity.Review;
-import matnam_zang.demo.entity.User;
-import matnam_zang.demo.dto.ReviewDto;
-import matnam_zang.demo.dto.UserRecipeDto;
-import matnam_zang.demo.repository.CategoryRepository;
-import matnam_zang.demo.repository.ImageRepository;
-import matnam_zang.demo.repository.IngredientRepository;
-import matnam_zang.demo.repository.InstructionRepository;
-import matnam_zang.demo.repository.RecipeRepository;
-import matnam_zang.demo.repository.ReviewRepository;
-import matnam_zang.demo.repository.UserRepository;
-import matnam_zang.demo.security.TokenProvider;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,10 +14,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.transaction.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import matnam_zang.demo.dto.ImageDto;
+import matnam_zang.demo.dto.MyRecipeDto;
+import matnam_zang.demo.dto.ReviewDto;
+import matnam_zang.demo.dto.UserRecipeDto;
+import matnam_zang.demo.entity.Category;
+import matnam_zang.demo.entity.Image;
+import matnam_zang.demo.entity.Ingredient;
+import matnam_zang.demo.entity.Instruction;
+import matnam_zang.demo.entity.Recipe;
+import matnam_zang.demo.entity.Review;
+import matnam_zang.demo.entity.User;
+import matnam_zang.demo.repository.CategoryRepository;
+import matnam_zang.demo.repository.ImageRepository;
+import matnam_zang.demo.repository.IngredientRepository;
+import matnam_zang.demo.repository.InstructionRepository;
+import matnam_zang.demo.repository.RecipeRepository;
+import matnam_zang.demo.repository.ReviewRepository;
+import matnam_zang.demo.repository.UserRepository;
+import matnam_zang.demo.security.TokenProvider;
 
 @Transactional // 트랜잭션을 명시적으로 관리하여 해당 메소드 내 db작업이 원자적으로 처리되어 예상대로 동작
 @Service
@@ -361,4 +365,47 @@ public class UserService {
     // 좋아요 누름
 
     // 좋아요 해제
+
+
+    public List<MyRecipeDto> findRecipes(String token) {
+        String username = tokenProvider.getUsernameFromToken(token);
+
+        if (username == null) {
+            throw new RuntimeException("Invalid token or user not authenticated");
+        }
+        
+        Optional<User> optionalUser = userRepository.findByUsername(username); // User 정보 조회
+        System.out.println("This is optionalUser" + optionalUser);
+
+        if (optionalUser.isPresent()) {
+            // userRecipe list를 return해줘야함
+            // recipeRepository의 연결된 entity에는 user_id(user로 받은 id)를 통해 해당 recipes 찾아야함
+            User user = optionalUser.get();
+            System.out.println("This are " + user.getUserId());
+
+            // 사용자 ID로 필터링하여 레시피를 조회합니다.
+            List<Recipe> recipes = recipeRepository.findAll().stream()
+                .filter(recipe -> recipe.getUser().getUserId().equals(user.getUserId()))
+                .collect(Collectors.toList());
+
+            // 각 레시피에 대한 이미지를 미리 조회합니다.
+            Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()
+                .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
+
+            // 레시피 DTO 리스트를 생성합니다.
+            List<MyRecipeDto> myRecipeDtos = recipes.stream()
+            .map(recipe -> {
+                List<Image> images = recipeImagesMap.getOrDefault(recipe.getRecipeId(), Collections.emptyList());
+                List<ImageDto> imageDtos = images.stream()
+                    .map(image -> new ImageDto(image.getImageId(), image.getImageUrl()))
+                    .collect(Collectors.toList());
+                return new MyRecipeDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos, recipe.getRecipeDescription(), recipe.getUser().getUserId(), null, false, null);
+            })
+            .collect(Collectors.toList());
+            return myRecipeDtos;
+        }else {
+            throw new RuntimeException("User not found");
+        }
+    }
+
 }

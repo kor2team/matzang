@@ -18,11 +18,13 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.Data;
+import lombok.ToString;
 
 // ● Recipe 테이블
 // 레시피의 기본 정보 저장 (유저가 작성한 레시피)
 @Entity
 @Data
+@ToString(exclude="user")
 public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

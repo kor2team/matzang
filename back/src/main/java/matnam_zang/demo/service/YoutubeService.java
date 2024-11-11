@@ -1,15 +1,16 @@
 package matnam_zang.demo.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import matnam_zang.demo.dto.YouTubeDto;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import matnam_zang.demo.dto.YouTubeDto;
 
 @Service
 public class YoutubeService {
@@ -25,7 +26,7 @@ public class YoutubeService {
     }
 
     public List<YouTubeDto> getYoutubeBySearchName(String searchName) {
-        String apiUrl = String.format("https://www.googleapis.com/youtube/v3/search?key=%s&part=snippet&q=%s&type=video", youtubeKey, searchName); // API 경로
+        String apiUrl = String.format("https://www.googleapis.com/youtube/v3/search?key=%s&part=snippet&q=%s&type=video&maxResults=3", youtubeKey, searchName); // API 경로
         System.out.println(apiUrl);
         String response = restTemplate.getForObject(apiUrl, String.class);
         List<YouTubeDto> videoList = new ArrayList<>();

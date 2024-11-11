@@ -1,20 +1,28 @@
 package matnam_zang.demo.controller;
 
-import matnam_zang.demo.dto.ReviewDto;
-import matnam_zang.demo.dto.UserRecipeDto;
-import matnam_zang.demo.entity.User;
-import matnam_zang.demo.entity.Recipe;
-import matnam_zang.demo.service.UserService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import matnam_zang.demo.dto.MyRecipeDto;
+import matnam_zang.demo.dto.ReviewDto;
+import matnam_zang.demo.dto.UserRecipeDto;
+import matnam_zang.demo.entity.Recipe;
+import matnam_zang.demo.entity.User;
+import matnam_zang.demo.service.UserService;
 
 
 
@@ -51,14 +59,13 @@ public class UserController {
     @PostMapping("/create-recipe")
     public ResponseEntity<?> createRecipe(
             @RequestHeader("Authorization") String token,  // JWT 토큰은 Authorization 헤더에서 받음
-            @RequestBody UserRecipeDto userRecipeDto) {   // 게시물 작성에 필요한 데이터
+            @RequestBody UserRecipeDto userRecipeDto) { // 게시물 작성에 필요한 데이터
 
         try {
-            // createRecipe 서비스 메서드 호출
-            Recipe createdRecipe = userService.createRecipe(token, userRecipeDto);
+            Recipe createRecipe = userService.createRecipe(token, userRecipeDto);
 
             // 성공적인 응답 반환
-            return ResponseEntity.ok(createdRecipe);
+            return ResponseEntity.ok(createRecipe);
         } catch (RuntimeException e) {
             // 예외 처리: 예외가 발생하면 400(Bad Request) 상태 코드 반환
             return ResponseEntity.badRequest().body("Error creating recipe: " + e.getMessage());
@@ -131,4 +138,23 @@ public class UserController {
             return ResponseEntity.badRequest().body("Error creating comment: " + e.getMessage());
         }
     }
+    
+    //내가 쓴 userRecipe
+    @GetMapping("/myRecipes")
+    public ResponseEntity<?> findRecipe(@RequestHeader("Authorization") String token) {
+        try{
+            String bearerToken = token.substring(7);
+            System.out.println(bearerToken);
+            
+            List<MyRecipeDto> findUserRecipes = userService.findRecipes(bearerToken);
+            return ResponseEntity.ok(findUserRecipes);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error creating recipe: " + e.getMessage());
+        }
+    }
+
+
+    // 좋아요
+
 }
