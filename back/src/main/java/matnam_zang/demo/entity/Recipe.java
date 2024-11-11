@@ -36,25 +36,25 @@ public class Recipe {
     @Column(nullable = false) // null 허용 x
     private String title;
 
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
-    private List<Image> images; // Recipe와 이미지는 1:N 관계
-
     @Column(columnDefinition = "TEXT") // 긴 텍스트 저장을 위해 TEXT 타입으로 정의
     private String recipeDescription;
     private int cookTime;
     private String difficultyLevel;
 
-    private LocalDateTime recipeCreateAt;
-    private LocalDateTime recipeUpdateAt;
-
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
-    private List<Instruction> instructions;
+    private List<Image> images; // Recipe와 이미지는 1:N 관계
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private List<Ingredient> ingredients;
 
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
+    private List<Instruction> instructions;
+
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL) // 카테고리 설정
     private List<Category> categories;
+
+    private LocalDateTime recipeCreateAt;
+    private LocalDateTime recipeUpdateAt;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private List<Review> reviews;

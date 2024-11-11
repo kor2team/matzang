@@ -10,6 +10,7 @@ import matnam_zang.demo.service.YoutubeService;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/api")
 public class YoutubeController {
@@ -19,10 +20,12 @@ public class YoutubeController {
         this.youtubeService = youtubeService;
     }
 
+    // 유튜브 이름조회 엔드포인트
     @GetMapping("/youtube/{searchName}")
     public List<YouTubeDto> getYoutubeBySearchNameMethod(@PathVariable("searchName") String searchName) {
         return youtubeService.getYoutubeBySearchName(searchName);
     }
+    
 }
 
 

@@ -5,19 +5,24 @@ import matnam_zang.demo.entity.Image;
 import matnam_zang.demo.entity.Ingredient;
 import matnam_zang.demo.entity.Instruction;
 import matnam_zang.demo.entity.Recipe;
+import matnam_zang.demo.entity.Review;
 import matnam_zang.demo.entity.User;
+import matnam_zang.demo.dto.ReviewDto;
 import matnam_zang.demo.dto.UserRecipeDto;
 import matnam_zang.demo.repository.CategoryRepository;
 import matnam_zang.demo.repository.ImageRepository;
 import matnam_zang.demo.repository.IngredientRepository;
 import matnam_zang.demo.repository.InstructionRepository;
 import matnam_zang.demo.repository.RecipeRepository;
+import matnam_zang.demo.repository.ReviewRepository;
 import matnam_zang.demo.repository.UserRepository;
 import matnam_zang.demo.security.TokenProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.transaction.Transactional;
 
@@ -25,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional // 트랜잭션을 명시적으로 관리하여 해당 메소드 내 db작업이 원자적으로 처리되어 예상대로 동작
 @Service
 public class UserService {
 
@@ -52,22 +58,20 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // User 생성
-    public User createUser(User user) {
-        return userRepository.save(user);
-    }
+    @Autowired
+    private ReviewRepository reviewRepository;
 
-    // User ID로 조회
+    // 유저 조회 (유저 id)
     public Optional<User> getUserById(Long userId) {
         return userRepository.findById(userId);
     }
 
-    // 특정 username을 가진 User 조회
+    // 유저 조회 (유저 name)
     public Optional<User> getUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
-    // 특정 email을 가진 User 조회
+    // 유저 조회 (유저 email)
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -99,14 +103,17 @@ public class UserService {
         throw new RuntimeException("Invalid username or password");
     }
 
-    @Transactional
+    // 게시물 작성
     public Recipe createRecipe(String token, UserRecipeDto userRecipeDto) {
+
+        String bearerToken = token.substring(7);
+
         // 1. 토큰 검증
-        if (tokenProvider.isTokenExpired(token)) {
+        if (tokenProvider.isTokenExpired(bearerToken)) {
             throw new RuntimeException("Token has expired");
         }
 
-        String username = tokenProvider.getUsernameFromToken(token);
+        String username = tokenProvider.getUsernameFromToken(bearerToken);
 
         if (username == null) {
             throw new RuntimeException("Invalid token or user not authenticated");
@@ -183,15 +190,18 @@ public class UserService {
         }
     }
 
-    @Transactional // 트랜잭션을 명시적으로 관리하여 해당 메소드 내 db작업이 원자적으로 처리되어 예상대로 동작
+    // 게시물 수정
     public Recipe updateRecipe(String token, Long recipeId, UserRecipeDto updatedRecipeDto) {
+
+        String bearerToken = token.substring(7);
+
         // 1. 토큰 검증
-        if (tokenProvider.isTokenExpired(token)) {
+        if (tokenProvider.isTokenExpired(bearerToken)) {
             throw new RuntimeException("Token has expired");
         }
     
         // 2. 토큰에서 사용자명 추출
-        String username = tokenProvider.getUsernameFromToken(token);
+        String username = tokenProvider.getUsernameFromToken(bearerToken);
     
         // 3. 수정할 레시피 찾기
         Recipe recipe = recipeRepository.findById(recipeId)
@@ -263,13 +273,17 @@ public class UserService {
         return updatedRecipe;
     }
 
+    // 게시물 삭제
     public void deleteRecipe(String token, Long recipeId) {
+
+        String bearerToken = token.substring(7);
+
         // 1. 토큰 검증
-        if (tokenProvider.isTokenExpired(token)) {
+        if (tokenProvider.isTokenExpired(bearerToken)) {
             throw new RuntimeException("Token has expired");
         }
 
-        String username = tokenProvider.getUsernameFromToken(token); // 토큰에서 사용자명 추출
+        String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
 
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
@@ -282,4 +296,69 @@ public class UserService {
         // 삭제 수행
         recipeRepository.delete(recipe);
     }
+
+    // 리뷰 작성
+    public void createReview(String token, Long recipeId, ReviewDto reviewDto) {
+        String bearerToken = token.substring(7);
+
+        // 1. 토큰 검증
+        if (tokenProvider.isTokenExpired(bearerToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired");
+        }
+
+        String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
+        
+
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new RuntimeException("Recipe not found"));
+
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Review 엔티티 생성 및 설정
+            Review review = new Review();
+            review.setUser(user);
+            review.setRecipe(recipe);
+            review.setComment(reviewDto.getReview());
+
+            // 리뷰 생성
+            reviewRepository.save(review);
+        }
+    }
+
+    // 리뷰 수정
+    public void updateReview(String token, Long reviewId, ReviewDto reviewDto) {
+        String bearerToken = token.substring(7);
+    
+        // 1. 토큰 검증
+        if (tokenProvider.isTokenExpired(bearerToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired");
+        }
+    
+        String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
+    
+        // 2. 사용자 찾기
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        User user = optionalUser.orElseThrow(() -> new RuntimeException("User not found"));
+    
+        // 3. 수정하려는 리뷰 찾기
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found"));
+    
+        // 4. 작성자 검증
+        if (!review.getUser().equals(user)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to update this review");
+        }
+    
+        // 5. 리뷰 수정
+        review.setComment(reviewDto.getReview()); // ReviewDto의 review로 수정
+        reviewRepository.save(review); // 수정된 리뷰 저장
+    }
+
+    // 리뷰 삭제
+
+    // 좋아요 누름
+
+    // 좋아요 해제
 }
