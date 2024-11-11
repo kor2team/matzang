@@ -1,5 +1,8 @@
 package matnam_zang.demo.entity;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +22,7 @@ public class Ingredient {
 
     @ManyToOne
     @JoinColumn(name = "recipe_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Recipe recipe;
 
     private String ingredientName; // 재료 이름

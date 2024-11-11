@@ -101,6 +101,11 @@ public class UserService {
 
     @Transactional
     public Recipe createRecipe(String token, UserRecipeDto userRecipeDto) {
+        // 1. 토큰 검증
+        if (tokenProvider.isTokenExpired(token)) {
+            throw new RuntimeException("Token has expired");
+        }
+
         String username = tokenProvider.getUsernameFromToken(token);
 
         if (username == null) {
@@ -166,7 +171,7 @@ public class UserService {
             // 레시피 엔티티 저장
             Recipe savedRecipe = recipeRepository.save(recipe);
 
-            // 추가적으로 관련된 엔티티들도 저장
+            // 추가적으로 관련된 엔티티들도 저장 (엔티티의 리스트내부 각 엔티티를 한번에 쿼리로 여러 row로서 집어넣음)
             imageRepository.saveAll(images);
             ingredientRepository.saveAll(ingredients);
             instructionRepository.saveAll(instructions);
@@ -178,4 +183,103 @@ public class UserService {
         }
     }
 
+    @Transactional // 트랜잭션을 명시적으로 관리하여 해당 메소드 내 db작업이 원자적으로 처리되어 예상대로 동작
+    public Recipe updateRecipe(String token, Long recipeId, UserRecipeDto updatedRecipeDto) {
+        // 1. 토큰 검증
+        if (tokenProvider.isTokenExpired(token)) {
+            throw new RuntimeException("Token has expired");
+        }
+    
+        // 2. 토큰에서 사용자명 추출
+        String username = tokenProvider.getUsernameFromToken(token);
+    
+        // 3. 수정할 레시피 찾기
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new RuntimeException("Recipe not found"));
+    
+        // 4. 게시물 작성자가 요청한 사용자와 일치하는지 확인
+        if (!recipe.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("User not authorized to update this recipe");
+        }
+    
+        // 5. 수정할 데이터만 갱신
+        recipe.setTitle(updatedRecipeDto.getTitle());
+        recipe.setRecipeDescription(updatedRecipeDto.getRecipeDescription());
+        recipe.setCookTime(updatedRecipeDto.getCookTime());
+        recipe.setDifficultyLevel(updatedRecipeDto.getDifficultyLevel());
+    
+        // 6. 기존 데이터 삭제
+        // 기존 이미지 삭제 (명시적으로 삭제)
+        imageRepository.deleteAll(recipe.getImages());
+        ingredientRepository.deleteAll(recipe.getIngredients());
+        instructionRepository.deleteAll(recipe.getInstructions());
+        categoryRepository.deleteAll(recipe.getCategories());
+    
+        // 7. 새로운 이미지 추가
+        List<Image> newImages = new ArrayList<>();
+        for (String imageUrl : updatedRecipeDto.getImages()) {
+            Image image = new Image();
+            image.setRecipe(recipe);
+            image.setImageUrl(imageUrl);
+            newImages.add(image);
+        }
+        recipe.setImages(newImages); // 새로운 이미지 리스트 설정
+    
+        // 8. 새로운 재료 추가
+        List<Ingredient> newIngredients = new ArrayList<>();
+        for (String ingredientName : updatedRecipeDto.getIngredients()) {
+            Ingredient ingredient = new Ingredient();
+            ingredient.setRecipe(recipe);
+            ingredient.setIngredientName(ingredientName);
+            newIngredients.add(ingredient);
+        }
+        recipe.setIngredients(newIngredients);
+    
+        // 9. 새로운 조리과정 추가
+        List<Instruction> newInstructions = new ArrayList<>();
+        int stepNumber = 1;
+        for (String instructionDescription : updatedRecipeDto.getInstructions()) {
+            Instruction instruction = new Instruction();
+            instruction.setRecipe(recipe);
+            instruction.setStepNumber(stepNumber++);
+            instruction.setInstructionDescription(instructionDescription);
+            newInstructions.add(instruction);
+        }
+        recipe.setInstructions(newInstructions); // 새로운 조리과정 리스트 설정
+    
+        // 10. 새로운 카테고리 추가
+        List<Category> newCategories = new ArrayList<>();
+        for (String categoryName : updatedRecipeDto.getCategories()) {
+            Category category = new Category();
+            category.setRecipe(recipe);
+            category.setCategoryName(categoryName);
+            newCategories.add(category);
+        }
+        recipe.setCategories(newCategories); // 새로운 카테고리 리스트 설정
+    
+        // 11. 레시피 저장
+        Recipe updatedRecipe = recipeRepository.save(recipe); // Cascade 옵션으로 인해 관계형 엔티티도 자동으로 저장됩니다.
+    
+        return updatedRecipe;
+    }
+
+    public void deleteRecipe(String token, Long recipeId) {
+        // 1. 토큰 검증
+        if (tokenProvider.isTokenExpired(token)) {
+            throw new RuntimeException("Token has expired");
+        }
+
+        String username = tokenProvider.getUsernameFromToken(token); // 토큰에서 사용자명 추출
+
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new RuntimeException("Recipe not found"));
+
+        // 게시물 작성자가 요청한 사용자와 일치하는지 확인
+        if (!recipe.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("User not authorized to delete this recipe");
+        }
+
+        // 삭제 수행
+        recipeRepository.delete(recipe);
+    }
 }

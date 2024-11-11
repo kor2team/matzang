@@ -6,6 +6,7 @@ import java.util.List;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,7 +36,7 @@ public class Recipe {
     @Column(nullable = false) // null 허용 x
     private String title;
 
-    @OneToMany(mappedBy = "recipe")
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private List<Image> images; // Recipe와 이미지는 1:N 관계
 
     @Column(columnDefinition = "TEXT") // 긴 텍스트 저장을 위해 TEXT 타입으로 정의
@@ -46,19 +47,19 @@ public class Recipe {
     private LocalDateTime recipeCreateAt;
     private LocalDateTime recipeUpdateAt;
 
-    @OneToMany(mappedBy = "recipe")
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private List<Instruction> instructions;
 
-    @OneToMany(mappedBy = "recipe")
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private List<Ingredient> ingredients;
 
-    @OneToMany(mappedBy = "recipe") // 카테고리 설정
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL) // 카테고리 설정
     private List<Category> categories;
 
-    @OneToMany(mappedBy = "recipe")
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private List<Review> reviews;
 
-    @OneToMany(mappedBy = "recipe")
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private List<Favorite> favorites;
 
     // 엔티티가 처음 저장되기 전에 호출되어 recipeCreateAt 설정

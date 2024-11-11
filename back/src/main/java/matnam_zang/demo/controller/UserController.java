@@ -1,5 +1,6 @@
 package matnam_zang.demo.controller;
 
+import matnam_zang.demo.dto.RecipeDto;
 import matnam_zang.demo.dto.UserRecipeDto;
 import matnam_zang.demo.entity.User;
 import matnam_zang.demo.entity.Recipe;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -47,8 +49,6 @@ public class UserController {
 
         try {
             String bearerToken = token.substring(7);
-            System.out.println(bearerToken);
-            System.out.println(userRecipeDto);
             // createRecipe 서비스 메서드 호출
             Recipe createdRecipe = userService.createRecipe(bearerToken, userRecipeDto);
 
@@ -57,6 +57,37 @@ public class UserController {
         } catch (RuntimeException e) {
             // 예외 처리: 예외가 발생하면 400(Bad Request) 상태 코드 반환
             return ResponseEntity.badRequest().body("Error creating recipe: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/update-recipe/{recipeId}")
+    public ResponseEntity<?> updateRecipe(
+            @RequestHeader("Authorization") String token,  // JWT 토큰으로 사용자 인증
+            @PathVariable("recipeId") Long recipeId, 
+            @RequestBody UserRecipeDto updatedRecipeDto) {
+
+        try {
+            String bearerToken = token.substring(7); // "Bearer " 제거
+            // 레시피 업데이트
+            userService.updateRecipe(bearerToken, recipeId, updatedRecipeDto);
+
+            return ResponseEntity.ok("Recipe updated successfully"); // 수정 성공 메시지
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body("Error updating recipe: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/delete-recipe/{recipeId}")
+    public ResponseEntity<?> deleteRecipe(
+            @RequestHeader("Authorization") String token,  // JWT 토큰으로 사용자 인증
+            @PathVariable("recipeId") Long recipeId) {
+
+        try {
+            String bearerToken = token.substring(7); // "Bearer " 제거
+            userService.deleteRecipe(bearerToken, recipeId);
+            return ResponseEntity.ok("Recipe deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body("Error deleting recipe: " + e.getMessage());
         }
     }
 }
