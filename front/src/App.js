@@ -16,7 +16,8 @@ import Footer from "./layout/Footer";
 const queryClient = new QueryClient();
 
 function App() {
-  const { isLogin, loggedInEmail, setIsLogin, setLoggedInEmail } = useStore();
+  const { isLogin, loggedInEmail, setIsLogin, setLoggedInEmail, selectedPost } =
+    useStore();
 
   useEffect(() => {
     const email = localStorage.getItem("loggedInEmail");
@@ -153,8 +154,7 @@ function App() {
                   }
                 />
               </Routes>
-
-              <PostModal />
+              <PostModal post={selectedPost} />
             </main>
 
             {/* Footer */}

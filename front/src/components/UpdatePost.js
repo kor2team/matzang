@@ -11,7 +11,6 @@ function UpdatePost() {
   const [instructions, setInstructions] = useState("");
 
   useEffect(() => {
-    console.log(selectedPost); // selectedPost 확인
     if (selectedPost) {
       setTitle(selectedPost.title || "");
       setRecipeDescription(selectedPost.recipeDescription || "");
@@ -32,7 +31,7 @@ function UpdatePost() {
     }
 
     const updatedPost = {
-      id: selectedPost.id,
+      id: selectedPost.recepiId,
       title,
       image,
       recipeDescription,

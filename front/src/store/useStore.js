@@ -54,6 +54,8 @@ const useStore = create((set) => ({
       ],
       nextPage: pageParam < 10 ? pageParam + 1 : undefined, // 다음 페이지 존재 여부
     };
+
+    set({ posts: sampleData.posts }); // 가져온 데이터를 posts 상태에 설정
     return sampleData;
   },
 
@@ -64,7 +66,6 @@ const useStore = create((set) => ({
     })),
   //게시물 수정시 물고올 상태저장
   setSelectedPost: (post) => {
-    console.log("Setting selectedPost:", post); // 업데이트 확인
     set({ selectedPost: post });
   },
   // 댓글을 게시물 ID별로 저장하는 상태
@@ -120,17 +121,22 @@ const useStore = create((set) => ({
   updatePost: (updatedPost) =>
     set((state) => ({
       posts: state.posts.map((post) =>
-        post.id === updatedPost.id ? { ...post, ...updatedPost } : post
+        post.recepiId === updatedPost.id ? { ...post, ...updatedPost } : post
       ),
+    })),
+
+  //게시물 삭제 함수
+  deletePost: (recepiId) =>
+    set((state) => ({
+      posts: state.posts.filter((post) => post.recepiId !== recepiId),
     })),
 
   // 상태 변경 함수들
   setActiveTab: (tab) => set({ activeTab: tab }), // activeTab 변경 함수
   // 특정 컴포넌트 전환 시 selectedPost도 함께 설정하도록 수정
-  setComponent: (component, post = null) =>
-    set({ currentComponent: component, selectedPost: post }),
+  setComponent: (component) => set({ currentComponent: component }),
   openModal: (post) => set({ isModalOpen: true, selectedPost: post }), // 모달 열기 및 게시물 설정
-  closeModal: () => set({ isModalOpen: false, selectedPost: null }), // 모달 닫기
+  closeModal: () => set({ isModalOpen: false }), // 모달 닫기
   setFilterUserPosts: (isUserPosts) => set({ filterUserPosts: isUserPosts }), // 내가 쓴 글 필터링 설정
   setFilterLikedPosts: (isLikedPosts) =>
     set({ filterLikedPosts: isLikedPosts }), // 좋아요한 글 필터링 설정

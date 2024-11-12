@@ -2,19 +2,22 @@ import useStore from "../store/useStore";
 import { useState } from "react";
 
 function PostModal({ post }) {
+  // Zustand 상태 및 액션 가져오기
   const {
-    isModalOpen,
-    closeModal,
-    selectedPost,
-    loggedInEmail,
-    comments,
-    addComment,
-    editComment,
-    deleteComment,
-    setComponent,
-    setSelectedPost,
+    isModalOpen, // 모달의 열림 상태
+    closeModal, // 모달을 닫는 함수
+    deletePost, // 게시물을 삭제하는 함수
+    selectedPost, // 선택된 게시물 정보
+    loggedInEmail, // 로그인된 사용자의 이메일
+    comments, // 댓글 상태
+    addComment, // 댓글 추가 함수
+    editComment, // 댓글 수정 함수
+    deleteComment, // 댓글 삭제 함수
+    setComponent, // 현재 활성 컴포넌트 변경 함수
+    setSelectedPost, // 선택된 게시물 설정 함수
   } = useStore();
 
+  // 로컬 상태 관리: 좋아요 수, 좋아요 여부, 새 댓글, 댓글 표시 여부
   const [newLike, setNewLike] = useState(0); // 좋아요 수 상태
   const [likedByUser, setLikedByUser] = useState(false); // 유저가 좋아요를 눌렀는지 여부
   const [newComment, setNewComment] = useState(""); // 새로운 댓글 입력 상태
@@ -53,18 +56,27 @@ function PostModal({ post }) {
       setLikedByUser(true); // 좋아요 버튼이 눌렸음을 상태로 저장
     }
   };
+
   // 모달이 열려 있지 않거나 선택된 게시물이 없으면 null 반환
   if (!isModalOpen || !selectedPost) return null;
 
-  const handleUpdatePost = () => {
-    setSelectedPost(selectedPost);
-    setTimeout(() => setComponent("updatePost"), 2000); // 게시물 작성 컴포넌트 활성화
-    closeModal();
-    console.log(selectedPost);
+  // 수정 버튼 클릭 핸들러: 선택된 게시물 설정 후 컴포넌트를 updatePost로 전환
+  const handleUpdatePost = (post) => {
+    setSelectedPost(post); // selectedPost 설정
+
+    // 약간의 지연 후 컴포넌트 전환
+    setTimeout(() => {
+      setComponent("updatePost");
+      closeModal();
+    }, 100);
   };
 
+  // 삭제 버튼 클릭 핸들러: 선택된 게시물을 삭제하고 모달 닫기
   const handleDeletePost = () => {
-    console.log("삭제되었습니다.");
+    if (selectedPost) {
+      deletePost(selectedPost.recepiId);
+      closeModal(); // 삭제 후 모달 닫기
+    }
   };
 
   return (
@@ -106,10 +118,11 @@ function PostModal({ post }) {
                 요리방법 : {selectedPost.instructions}
               </p>
 
+              {/* 수정 및 삭제 버튼 - 작성자에게만 표시 */}
               {selectedPost.userId === loggedInEmail && (
                 <div className="flex space-x-2 items-center justify-end mt-3 mr-2">
                   <button
-                    onClick={handleUpdatePost}
+                    onClick={() => handleUpdatePost(post)}
                     className="text-sm text-blue-500 hover:underline"
                   >
                     수정
