@@ -1,51 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useStore from "../store/useStore";
 
-function CreatePost() {
-  // Zustand에서 필요한 상태와 함수 가져옴
-  const { addPost, setComponent, loggedInEmail } = useStore();
+function UpdatePost() {
+  const { updatePost, setComponent, selectedPost } = useStore();
 
-  // 게시물 목록으로 돌아가는 함수
-  const handlePostList = () => {
-    setComponent("postList");
-  };
+  const [title, setTitle] = useState("");
+  const [recipeDescription, setRecipeDescription] = useState("");
+  const [image, setImage] = useState(null);
+  const [ingredients, setIngredients] = useState("");
+  const [instructions, setInstructions] = useState("");
 
-  // 레시피 작성 상태 관리
-  const [title, setTitle] = useState(""); // 레시피명 상태
-  const [recipeDescription, setRecipeDescription] = useState(""); //레시피 간략소개
-  const [image, setImage] = useState(null); // 이미지 상태
-  const [ingredients, setIngredients] = useState(""); // 재료 상태
-  const [instructions, setInstructions] = useState(""); // 조리 과정 상태
+  useEffect(() => {
+    if (selectedPost) {
+      setTitle(selectedPost.title || "");
+      setRecipeDescription(selectedPost.recipeDescription || "");
+      setImage(selectedPost.image || null);
+      setIngredients(selectedPost.ingredients || "");
+      setInstructions(selectedPost.instructions || "");
+    }
+  }, [selectedPost]);
 
-  // 이미지 파일 선택 시 이미지 URL 설정
   const handleImageChange = (e) => {
     setImage(URL.createObjectURL(e.target.files[0]));
   };
 
-  // 게시물 저장 함수
-  const handleSavePost = () => {
-    const newPost = {
-      postId: Date.now(), // 임시 ID 생성 (고유한 ID 생성)
-      userId: loggedInEmail, // 현재 로그인한 사용자의 이메일
+  const handleUpdatePost = () => {
+    if (!selectedPost) {
+      console.error("선택된 게시물이 없습니다.");
+      return;
+    }
+
+    const updatedPost = {
+      id: selectedPost.recepiId,
       title,
-      image, // 이미지 URL
+      image,
       recipeDescription,
       ingredients,
       instructions,
-      likedByUser: false, // 초기 값으로 좋아요가 안 눌린 상태
     };
 
-    // addPost를 통해 상태에 게시물 추가
-    addPost(newPost);
-    setTimeout(() => {
-      setComponent("postList");
-    }, 2000);
-    // 게시물 목록으로 돌아감
+    updatePost(updatedPost);
+    setComponent("postList");
   };
 
+  // selectedPost가 아직 설정되지 않았을 때 로딩 상태 표시
+  if (!selectedPost) {
+    return (
+      <div className="p-4 bg-white h-3/4">
+        <h2 className="text-2xl text-orange-500 font-bold mb-4">
+          선택된 게시물이 없습니다.
+        </h2>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 bg-white  h-3/4">
-      <h2 className="text-2xl text-orange-500 font-bold mb-4">레시피 작성</h2>
+    <div className="p-4 bg-white h-3/4">
+      <h2 className="text-2xl text-orange-500 font-bold mb-4">레시피 수정</h2>
 
       {/* 레시피명 입력 */}
       <div className="mb-4">
@@ -58,7 +69,6 @@ function CreatePost() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full p-2 rounded-sm mt-2 border border-orange-500 bg-white"
-          placeholder="레시피명을 입력하세요."
         />
       </div>
 
@@ -76,7 +86,6 @@ function CreatePost() {
           value={recipeDescription}
           onChange={(e) => setRecipeDescription(e.target.value)}
           className="w-full p-2 rounded-sm mt-2 border border-orange-500 bg-white"
-          placeholder="레시피에 대해 간략하게 소개해 주세요."
         />
       </div>
 
@@ -113,7 +122,6 @@ function CreatePost() {
           onChange={(e) => setIngredients(e.target.value)}
           className="w-full p-2 rounded-sm mt-2 border border-orange-500 bg-white"
           rows="4"
-          placeholder="필요한 재료를 입력하세요"
         />
       </div>
 
@@ -128,21 +136,20 @@ function CreatePost() {
           onChange={(e) => setInstructions(e.target.value)}
           className="w-full p-2 rounded-sm mt-2 border border-orange-500 bg-white"
           rows="6"
-          placeholder="조리 과정을 입력하세요"
         />
       </div>
 
-      {/* 버튼들 */}
-      <div className="flex flex-wrap justify-start gap-2">
+      {/* 저장 버튼 */}
+      <div className="flex justify-start gap-2">
         <button
-          type="submit"
-          onClick={handleSavePost}
+          type="button"
+          onClick={handleUpdatePost}
           className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
         >
           저장하기
         </button>
         <button
-          onClick={handlePostList}
+          onClick={() => setComponent("postList")}
           className="bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-full shadow-lg fixed bottom-4 right-4 md:p-3 md:bottom-6 md:right-6 lg:p-4 lg:bottom-4 lg:right-4"
         >
           돌아가기
@@ -152,4 +159,4 @@ function CreatePost() {
   );
 }
 
-export default CreatePost;
+export default UpdatePost;

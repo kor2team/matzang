@@ -12,7 +12,7 @@ function MainPage_RecipeDescription({ isOpen, onClose, recipe }) {
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500"
         >
-          <span class="material-symbols-outlined">close</span>
+          <span className="material-symbols-outlined">close</span>
         </button>
         {/* 왼쪽 이미지 영역 */}
         <div className="w-1/2 flex justify-center items-start border border-gray-300 rounded-lg p-4 mt-4">

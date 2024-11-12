@@ -7,7 +7,7 @@ const RecipeList = () => {
 
   useEffect(() => {
     const url =
-      "https://openapi.foodsafetykorea.go.kr/api/5a4532257f514de99381/COOKRCP01/json/1/10";
+      "https://openapi.foodsafetykorea.go.kr/api/api_key/COOKRCP01/json/1/10";
 
     fetch(url)
       .then((response) => {

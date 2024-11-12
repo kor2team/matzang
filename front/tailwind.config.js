@@ -44,6 +44,9 @@ module.exports = {
         full: "100%", // 전체 너비
         maxW: "400px", // 모달 최대 너비
       },
+      height: {
+        maxh: "520px",
+      },
       fontSize: {
         xl: "20px", // 헤더 텍스트 크기
         lg: "16px", // 버튼 텍스트 크기
@@ -53,5 +56,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("daisyui")],
+  plugins: [],
 };
