@@ -19,6 +19,7 @@ import matnam_zang.demo.dto.MyRecipeDto;
 import matnam_zang.demo.dto.ReviewDto;
 import matnam_zang.demo.dto.UserRecipeDto;
 import matnam_zang.demo.entity.Category;
+import matnam_zang.demo.entity.Favorite;
 import matnam_zang.demo.entity.Image;
 import matnam_zang.demo.entity.Ingredient;
 import matnam_zang.demo.entity.Instruction;
@@ -26,6 +27,7 @@ import matnam_zang.demo.entity.Recipe;
 import matnam_zang.demo.entity.Review;
 import matnam_zang.demo.entity.User;
 import matnam_zang.demo.repository.CategoryRepository;
+import matnam_zang.demo.repository.FavoriteRepository;
 import matnam_zang.demo.repository.ImageRepository;
 import matnam_zang.demo.repository.IngredientRepository;
 import matnam_zang.demo.repository.InstructionRepository;
@@ -64,6 +66,10 @@ public class UserService {
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private FavoriteRepository favoriteRepository;
+
 
     // 유저 조회 (유저 id)
     public Optional<User> getUserById(Long userId) {
@@ -301,6 +307,50 @@ public class UserService {
         recipeRepository.delete(recipe);
     }
 
+    // 나의 레시피 확인
+    public List<MyRecipeDto> findRecipes(String token) {
+        String username = tokenProvider.getUsernameFromToken(token);
+
+        if (username == null) {
+            throw new RuntimeException("Invalid token or user not authenticated");
+        }
+
+        Optional<User> optionalUser = userRepository.findByUsername(username); // User 정보 조회
+        System.out.println("This is optionalUser" + optionalUser);
+
+        if (optionalUser.isPresent()) {
+            // userRecipe list를 return해줘야함
+            // recipeRepository의 연결된 entity에는 user_id(user로 받은 id)를 통해 해당 recipes 찾아야함
+            User user = optionalUser.get();
+            System.out.println("This are " + user.getUserId());
+
+            // 사용자 ID로 필터링하여 레시피를 조회합니다.
+            List<Recipe> recipes = recipeRepository.findAll().stream()
+                    .filter(recipe -> recipe.getUser().getUserId().equals(user.getUserId()))
+                    .collect(Collectors.toList());
+
+            // 각 레시피에 대한 이미지를 미리 조회합니다.
+            Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()
+                    .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
+
+            // 레시피 DTO 리스트를 생성합니다.
+            List<MyRecipeDto> myRecipeDtos = recipes.stream()
+                    .map(recipe -> {
+                        List<Image> images = recipeImagesMap.getOrDefault(recipe.getRecipeId(),
+                                Collections.emptyList());
+                        List<ImageDto> imageDtos = images.stream()
+                                .map(image -> new ImageDto(image.getImageId(), image.getImageUrl()))
+                                .collect(Collectors.toList());
+                        return new MyRecipeDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos,
+                                recipe.getRecipeDescription(), recipe.getUser().getUserId(), null, false, null);
+                    })
+                    .collect(Collectors.toList());
+            return myRecipeDtos;
+        } else {
+            throw new RuntimeException("User not found");
+        }
+    }
+
     // 리뷰 작성
     public void createReview(String token, Long recipeId, ReviewDto reviewDto) {
         String bearerToken = token.substring(7);
@@ -385,50 +435,45 @@ public class UserService {
     }
 
     // 좋아요 누름
+    public String favorite(String token, Long recipeId) {
+        String bearerToken = token.substring(7);
+
+        if (tokenProvider.isTokenExpired(bearerToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired");
+        }
+
+        String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(() -> new RuntimeException("Recipe not found"));
+        Favorite favorite = new Favorite();
+        favorite.setRecipe(recipe);
+        favorite.setUser(user);
+        if(favoriteRepository.findByUserAndRecipe(user, recipe) != null){
+            return "Not Permission double.";
+        }
+        favoriteRepository.save(favorite);
+        return "Ok";
+    }
 
     // 좋아요 해제
-
-    public List<MyRecipeDto> findRecipes(String token) {
-        String username = tokenProvider.getUsernameFromToken(token);
-
-        if (username == null) {
-            throw new RuntimeException("Invalid token or user not authenticated");
+    public void favorite_cancel(String token, Long recipeId){
+        String bearerToken = token.substring(7);
+        if(tokenProvider.isTokenExpired(bearerToken)){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired");
         }
+        String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(()-> new RuntimeException("Recipe not found"));
+        
+        
+        Favorite favorite = favoriteRepository.findByUserAndRecipe(user, recipe)
+        .orElseThrow(() -> new RuntimeException("Favorite not found"));
 
-        Optional<User> optionalUser = userRepository.findByUsername(username); // User 정보 조회
-        System.out.println("This is optionalUser" + optionalUser);
-
-        if (optionalUser.isPresent()) {
-            // userRecipe list를 return해줘야함
-            // recipeRepository의 연결된 entity에는 user_id(user로 받은 id)를 통해 해당 recipes 찾아야함
-            User user = optionalUser.get();
-            System.out.println("This are " + user.getUserId());
-
-            // 사용자 ID로 필터링하여 레시피를 조회합니다.
-            List<Recipe> recipes = recipeRepository.findAll().stream()
-                    .filter(recipe -> recipe.getUser().getUserId().equals(user.getUserId()))
-                    .collect(Collectors.toList());
-
-            // 각 레시피에 대한 이미지를 미리 조회합니다.
-            Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()
-                    .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
-
-            // 레시피 DTO 리스트를 생성합니다.
-            List<MyRecipeDto> myRecipeDtos = recipes.stream()
-                    .map(recipe -> {
-                        List<Image> images = recipeImagesMap.getOrDefault(recipe.getRecipeId(),
-                                Collections.emptyList());
-                        List<ImageDto> imageDtos = images.stream()
-                                .map(image -> new ImageDto(image.getImageId(), image.getImageUrl()))
-                                .collect(Collectors.toList());
-                        return new MyRecipeDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos,
-                                recipe.getRecipeDescription(), recipe.getUser().getUserId(), null, false, null);
-                    })
-                    .collect(Collectors.toList());
-            return myRecipeDtos;
-        } else {
-            throw new RuntimeException("User not found");
-        }
+        favoriteRepository.delete(favorite); // Favorite 삭제
+        
     }
+    
+
+    
 
 }

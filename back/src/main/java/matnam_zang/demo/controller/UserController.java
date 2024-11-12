@@ -24,9 +24,6 @@ import matnam_zang.demo.entity.Recipe;
 import matnam_zang.demo.entity.User;
 import matnam_zang.demo.service.UserService;
 
-
-
-
 @RestController
 @RequestMapping("/api/auth")
 public class UserController {
@@ -58,7 +55,7 @@ public class UserController {
     // 레시피 작성 엔드포인트
     @PostMapping("/create-recipe")
     public ResponseEntity<?> createRecipe(
-            @RequestHeader("Authorization") String token,  // JWT 토큰은 Authorization 헤더에서 받음
+            @RequestHeader("Authorization") String token, // JWT 토큰은 Authorization 헤더에서 받음
             @RequestBody UserRecipeDto userRecipeDto) { // 게시물 작성에 필요한 데이터
 
         try {
@@ -75,8 +72,8 @@ public class UserController {
     // 레시피 수정 엔드포인트
     @PutMapping("/update-recipe/{recipe_id}")
     public ResponseEntity<?> updateRecipe(
-            @RequestHeader("Authorization") String token,  // JWT 토큰으로 사용자 인증
-            @PathVariable("recipe_id") Long recipeId, 
+            @RequestHeader("Authorization") String token, // JWT 토큰으로 사용자 인증
+            @PathVariable("recipe_id") Long recipeId,
             @RequestBody UserRecipeDto updatedRecipeDto) {
 
         try {
@@ -92,7 +89,7 @@ public class UserController {
     // 레시피 삭제 엔드포인트
     @DeleteMapping("/delete-recipe/{recipe_id}")
     public ResponseEntity<?> deleteRecipe(
-            @RequestHeader("Authorization") String token,  // JWT 토큰으로 사용자 인증
+            @RequestHeader("Authorization") String token, // JWT 토큰으로 사용자 인증
             @PathVariable("recipe_id") Long recipeId) {
 
         try {
@@ -103,13 +100,28 @@ public class UserController {
         }
     }
 
+    // 나의 레시피 확인
+    @GetMapping("/myRecipes")
+    public ResponseEntity<?> findRecipe(@RequestHeader("Authorization") String token) {
+        try {
+            String bearerToken = token.substring(7);
+            System.out.println(bearerToken);
+
+            List<MyRecipeDto> findUserRecipes = userService.findRecipes(bearerToken);
+            return ResponseEntity.ok(findUserRecipes);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error creating recipe: " + e.getMessage());
+        }
+    }
+
     // 리뷰 작성 엔드포인트
     @PostMapping("/create-review/{recipe_id}")
     public ResponseEntity<?> createReview(
-        @RequestHeader("Authorization") String token,
-        @PathVariable("recipe_id") Long recipeId,
-        @RequestBody ReviewDto reviewDto) {
-        
+            @RequestHeader("Authorization") String token,
+            @PathVariable("recipe_id") Long recipeId,
+            @RequestBody ReviewDto reviewDto) {
+
         try {
             // createRecipe 서비스 메서드 호출
             userService.createReview(token, recipeId, reviewDto);
@@ -120,13 +132,13 @@ public class UserController {
             return ResponseEntity.badRequest().body("Error creating comment: " + e.getMessage());
         }
     }
-    
+
     // 리뷰 수정 엔드포인트
     @PutMapping("/update-review/{review_id}")
     public ResponseEntity<String> putMethodName(
-        @RequestHeader("Authorization") String token,
-        @PathVariable("review_id") Long reviewId,
-        @RequestBody ReviewDto reviewDto) {
+            @RequestHeader("Authorization") String token,
+            @PathVariable("review_id") Long reviewId,
+            @RequestBody ReviewDto reviewDto) {
 
         try {
             // createRecipe 서비스 메서드 호출
@@ -139,38 +151,47 @@ public class UserController {
         }
     }
 
-    
     // 리뷰 삭제
     @DeleteMapping("/delete-review/{review_id}")
     public ResponseEntity<?> deleteReview(
-        @RequestHeader("Authorization") String token,
-        @PathVariable("review_id") Long reviewId){
-            try {
-                // deleteReview 서비스 메서드 호출
-                userService.deleteReview(token, reviewId);
-    
-                // 성공적인 응답 반환
-                return ResponseEntity.ok("Delete Success");
-            } catch (RuntimeException e) {
-                return ResponseEntity.badRequest().body("Error creating comment: " + e.getMessage());
-            }
-        }
+            @RequestHeader("Authorization") String token,
+            @PathVariable("review_id") Long reviewId) {
+        try {
+            // deleteReview 서비스 메서드 호출
+            userService.deleteReview(token, reviewId);
 
-    //내가 쓴 userRecipe
-    @GetMapping("/myRecipes")
-    public ResponseEntity<?> findRecipe(@RequestHeader("Authorization") String token) {
-        try{
-            String bearerToken = token.substring(7);
-            System.out.println(bearerToken);
-            
-            List<MyRecipeDto> findUserRecipes = userService.findRecipes(bearerToken);
-            return ResponseEntity.ok(findUserRecipes);
-
+            // 성공적인 응답 반환
+            return ResponseEntity.ok("Delete Success");
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body("Error creating recipe: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error creating comment: " + e.getMessage());
         }
     }
 
+    // 좋아요 누름
+    @GetMapping("favorite/{recipe_id}")
+    public ResponseEntity<?> favorite(
+        @RequestHeader("Authorization") String token,
+        @PathVariable("recipe_id") Long recipeId
+    ){
+        try{
+            String result = userService.favorite(token, recipeId);
+            return ResponseEntity.ok(result);
+        }catch(RuntimeException e){
+            return ResponseEntity.badRequest().body("Error creating comment : " + e.getMessage());
+        }
+    }
 
-
+    // 좋아요 해제
+    @DeleteMapping("favorite_cancel/{recipe_id}")
+    public ResponseEntity<?> favorite_cancel(
+        @RequestHeader("Authorization") String token,
+        @PathVariable("recipe_id") Long recipeId
+    ){
+        try{
+            userService.favorite_cancel(token, recipeId);
+            return ResponseEntity.ok("Cancel Success");
+        }catch(RuntimeException e){
+            return ResponseEntity.badRequest().body("Error creating comment : " + e.getMessage());
+        }
+    }
 }
