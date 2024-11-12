@@ -14,6 +14,8 @@ public class MyRecipeDto {
     private String recipeDescription;
     private Long userId; // user_id만 포함
     private Long favoriteCount;
+    private Long reviewCount;
     private boolean favorite;
-    private List<Long> reviewIds;
+    
+    private List<String> reviews;
 }

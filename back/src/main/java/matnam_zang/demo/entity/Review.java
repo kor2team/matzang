@@ -14,10 +14,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.Data;
+import lombok.ToString;
 
 // 리뷰 테이블 : 사용자가 작성한 리뷰 저장
 @Entity
 @Data
+@ToString(exclude = {"recipe", "user"})
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

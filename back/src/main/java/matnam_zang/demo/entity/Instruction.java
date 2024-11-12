@@ -10,10 +10,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
+import lombok.ToString;
 
 // 조리과정 테이블 : 조리과정을 순서대로 저장
 @Entity
 @Data
+@ToString(exclude = "recipe")
 public class Instruction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
