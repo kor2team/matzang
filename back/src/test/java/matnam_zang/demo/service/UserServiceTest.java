@@ -121,12 +121,20 @@ public class UserServiceTest {
     @Test
     @Order(2)
     void loginUser() throws Exception {
-        String userJson = "{\"username\":\"testuser\", \"password\":\"testpassword\"}";
+
+        String userJson = "{\"username\":\"testuser\", \"password\":\"testpassword\", \"email\":\"test@example.com\"}";
+    
+        // 회원가입 요청을 보내기
+        mockMvc.perform(post("/api/auth/register")
+        .contentType("application/json")
+        .content(userJson));
+
+        String loginJson = "{\"username\":\"testuser\", \"password\":\"testpassword\"}";
     
         // 로그인 요청을 보내기
         this.jwtToken = mockMvc.perform(post("/api/auth/login")
                 .contentType("application/json")
-                .content(userJson))
+                .content(loginJson))
                 .andExpect(status().isOk())  // 200 상태 코드
                 .andExpect(jsonPath("$.token").exists())  // token 존재 확인
                 .andExpect(jsonPath("$.token").isString())  // token이 문자열인지 확인
