@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import matnam_zang.demo.dto.BoardRecipeDto;
 import matnam_zang.demo.dto.BoardRecipesDto;
 import matnam_zang.demo.dto.ReviewDto;
