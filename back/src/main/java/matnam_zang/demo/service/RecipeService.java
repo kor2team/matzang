@@ -171,8 +171,6 @@ public class RecipeService {
     public List<RecipeDto> getRecipesByIngredients(@RequestParam("searchIngredient") List<String> searchIngredient) {
         // 쉼표로 재료를 연결하여 URL 파라미터로 사용
         String joinedIngredients = String.join(",", searchIngredient);
-
-        System.out.println(joinedIngredients);
         
         // API URL 정의 (쉼표로 구분된 재료를 `RCP_PARTS_DTLS` 파라미터에 추가)
         String apiUrl = String.format("http://openapi.foodsafetykorea.go.kr/api/%s/COOKRCP01/json/1/100/RCP_PARTS_DTLS=%s", recipeKey, joinedIngredients);

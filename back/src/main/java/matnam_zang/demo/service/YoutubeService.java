@@ -27,7 +27,6 @@ public class YoutubeService {
 
     public List<YouTubeDto> getYoutubeBySearchName(String searchName) {
         String apiUrl = String.format("https://www.googleapis.com/youtube/v3/search?key=%s&part=snippet&q=%s&type=video&maxResults=3", youtubeKey, searchName); // API 경로
-        System.out.println(apiUrl);
         String response = restTemplate.getForObject(apiUrl, String.class);
         List<YouTubeDto> videoList = new ArrayList<>();
 

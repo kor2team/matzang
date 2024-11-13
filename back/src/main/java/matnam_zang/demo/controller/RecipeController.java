@@ -33,7 +33,7 @@ public class RecipeController {
     }
 
     // 공용 레시피 상세조회 엔드포인트
-    @GetMapping("/detailRecipe") // ex. http://localhost:8080/api/recipes?searchIngredient=새우&searchIngredient=김치&searchIngredient=양파
+    @GetMapping("/recipes/detailRecipe") // ex. http://localhost:8080/api/recipes?searchIngredient=새우&searchIngredient=김치&searchIngredient=양파
     public List<RecipeDto> getMethodName(@RequestParam("searchIngredient") List<String> searchIngredient) {
         // 서비스 메서드를 호출하여 결과 반환
         return recipeService.getRecipesByIngredients(searchIngredient);

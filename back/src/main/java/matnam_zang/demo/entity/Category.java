@@ -1,30 +1,29 @@
 package matnam_zang.demo.entity;
-
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import lombok.Data;
-import lombok.ToString;
+import jakarta.persistence.*;
 
-// 카테고리 테이블 : 레시피 카테고리 정보 저장
+@Schema(description = "레시피 카테고리 정보를 저장하는 엔티티") 
 @Entity
 @Data
 @ToString(exclude = "recipe")
 public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(description = "카테고리 ID", example = "1")
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "recipe_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @Schema(description = "해당 카테고리가 속한 레시피 엔티티", example = "Recipe 객체")
     private Recipe recipe;
 
-    private String categoryName; // 카테고리 이름
+    @Schema(description = "카테고리 이름", example = "디저트")
+    private String categoryName; 
 }

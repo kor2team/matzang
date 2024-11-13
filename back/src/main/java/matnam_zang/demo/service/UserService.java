@@ -309,7 +309,7 @@ public class UserService {
     }
     
     // 나의 레시피 외부 확인
-    public List<BoardRecipesDto> findMyRecipes(String token){
+    public List<BoardRecipesDto> getRecipePostBeforeAccess(String token){
         String username = tokenProvider.getUsernameFromToken(token);
 
         if (username == null) {
@@ -319,7 +319,6 @@ public class UserService {
         Optional<User> optionalUser = userRepository.findByUsername(username); // User 정보 조회
         if(optionalUser.isPresent()){
             User user = optionalUser.get();
-            System.out.println("This are " + user.getUserId());
 
             // 사용자 ID로 필터링하여 레시피를 조회합니다.
             List<Recipe> recipes = recipeRepository.findAll().stream()
@@ -351,7 +350,7 @@ public class UserService {
     }
 
     // 나의 레시피 내부 확인(나의 레시피 클릭시 상세목록)
-    public List<BoardRecipeDto> findMyRecipe(String token) {
+    public List<BoardRecipeDto> getRecipePostAfterAccess(String token) {
         String username = tokenProvider.getUsernameFromToken(token);
 
         if (username == null) {
@@ -359,13 +358,11 @@ public class UserService {
         }
 
         Optional<User> optionalUser = userRepository.findByUsername(username); // User 정보 조회
-        System.out.println("This is optionalUser" + optionalUser);
 
         if (optionalUser.isPresent()) {
             // userRecipe list를 return해줘야함
             // recipeRepository의 연결된 entity에는 user_id(user로 받은 id)를 통해 해당 recipes 찾아야함
             User user = optionalUser.get();
-            System.out.println("This are " + user.getUserId());
 
             // 사용자 ID로 필터링하여 레시피를 조회합니다.
             List<Recipe> recipes = recipeRepository.findAll().stream()

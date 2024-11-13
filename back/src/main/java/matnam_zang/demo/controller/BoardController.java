@@ -21,10 +21,10 @@ public class BoardController {
     private BoardService boardService;
 
     // 전체 레시피 외부 확인
-    @GetMapping("/userRecipes")
+    @GetMapping("/getRecipePostBeforeAccess")
     public ResponseEntity<?> findUserRecipes(){
         try {
-            List<BoardRecipesDto> findUserRecipes = boardService.findUserRecipes();
+            List<BoardRecipesDto> findUserRecipes = boardService.getRecipePostBeforeAccess();
             return ResponseEntity.ok(findUserRecipes);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body("Error creating recipes : " + e.getMessage());
@@ -32,11 +32,11 @@ public class BoardController {
     }
 
     // 전체 레시피 내부 확인
-    @GetMapping("/userRecipeClick")
+    @GetMapping("/getRecipePostAfterAccess")
     public ResponseEntity<?> findUserRecipe(@RequestHeader("Authorization") String token){
         try{
             String bearerToken = token.substring(7);
-            List<BoardRecipeDto> findUserRecipe = boardService.findUserRecipe(bearerToken);
+            List<BoardRecipeDto> findUserRecipe = boardService.getRecipePostAfterAccess(bearerToken);
             return ResponseEntity.ok(findUserRecipe);
         }catch(RuntimeException e){
             return ResponseEntity.badRequest().body("Error creating recipe : " + e.getMessage());

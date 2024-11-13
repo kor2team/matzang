@@ -42,7 +42,7 @@ public class BoardService {
     @Autowired
     private FavoriteRepository favoriteRepository;
 
-    public List<BoardRecipesDto> findUserRecipes() {
+    public List<BoardRecipesDto> getRecipePostBeforeAccess() {
         List<Recipe> recipes = recipeRepository.findAll();
         // 각 레시피에 대한 이미지를 미리 조회합니다.
         Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()
@@ -63,7 +63,7 @@ public class BoardService {
         return userRecipesDtos;
     }
 
-    public List<BoardRecipeDto> findUserRecipe(String token) {
+    public List<BoardRecipeDto> getRecipePostAfterAccess(String token) {
         String username = tokenProvider.getUsernameFromToken(token);
         if (username == null) {
             throw new RuntimeException("Invaild token or user not authenticated");
