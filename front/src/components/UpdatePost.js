@@ -1,15 +1,19 @@
+// UpdatePost.js
 import React, { useState, useEffect } from "react";
 import useStore from "../store/useStore";
 
 function UpdatePost() {
+  // Zustand에서 필요한 상태와 함수 가져옴
   const { updatePost, setComponent, selectedPost } = useStore();
 
+  // 수정될 게시물의 상태 관리
   const [title, setTitle] = useState("");
   const [recipeDescription, setRecipeDescription] = useState("");
   const [image, setImage] = useState(null);
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
 
+  // 선택된 게시물 데이터를 로드하여 초기 상태 설정
   useEffect(() => {
     if (selectedPost) {
       setTitle(selectedPost.title || "");
@@ -20,18 +24,20 @@ function UpdatePost() {
     }
   }, [selectedPost]);
 
+  // 이미지 파일 선택 시 이미지 URL 설정
   const handleImageChange = (e) => {
     setImage(URL.createObjectURL(e.target.files[0]));
   };
 
-  const handleUpdatePost = () => {
+  // 게시물 업데이트 함수
+  const handleUpdatePost = async () => {
     if (!selectedPost) {
       console.error("선택된 게시물이 없습니다.");
       return;
     }
 
     const updatedPost = {
-      id: selectedPost.recepiId,
+      recepiId: selectedPost.recepiId, // 업데이트할 게시물 ID
       title,
       image,
       recipeDescription,
@@ -39,8 +45,9 @@ function UpdatePost() {
       instructions,
     };
 
-    updatePost(updatedPost);
-    setComponent("postList");
+    // updatePost 함수 호출하여 상태와 백엔드 업데이트
+    await updatePost(selectedPost.userId, updatedPost);
+    setComponent("postList"); // 업데이트 후 게시물 목록으로 이동
   };
 
   // selectedPost가 아직 설정되지 않았을 때 로딩 상태 표시

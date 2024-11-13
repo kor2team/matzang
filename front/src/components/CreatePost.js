@@ -1,3 +1,4 @@
+// CreatePost.js
 import React, { useState } from "react";
 import useStore from "../store/useStore";
 
@@ -23,24 +24,20 @@ function CreatePost() {
   };
 
   // 게시물 저장 함수
-  const handleSavePost = () => {
+  const handleSavePost = async () => {
     const newPost = {
-      postId: Date.now(), // 임시 ID 생성 (고유한 ID 생성)
-      userId: loggedInEmail, // 현재 로그인한 사용자의 이메일
+      // 필요한 게시물 정보 설정
       title,
       image, // 이미지 URL
       recipeDescription,
       ingredients,
       instructions,
-      likedByUser: false, // 초기 값으로 좋아요가 안 눌린 상태
+      userId: loggedInEmail, // 현재 로그인한 사용자의 이메일
     };
 
     // addPost를 통해 상태에 게시물 추가
-    addPost(newPost);
-    setTimeout(() => {
-      setComponent("postList");
-    }, 2000);
-    // 게시물 목록으로 돌아감
+    await addPost(loggedInEmail, newPost); // 백엔드 연동을 위해 로그인 이메일을 포함해 전달
+    setComponent("postList"); // 게시물 목록으로 돌아감
   };
 
   return (
@@ -136,13 +133,13 @@ function CreatePost() {
       <div className="flex flex-wrap justify-start gap-2">
         <button
           type="submit"
-          onClick={handleSavePost}
+          onClick={handleSavePost} // 저장 버튼 클릭 시 게시물 추가
           className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
         >
           저장하기
         </button>
         <button
-          onClick={handlePostList}
+          onClick={handlePostList} // 돌아가기 버튼 클릭 시 목록으로 돌아감
           className="bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-full shadow-lg fixed bottom-4 right-4 md:p-3 md:bottom-6 md:right-6 lg:p-4 lg:bottom-4 lg:right-4"
         >
           돌아가기

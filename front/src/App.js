@@ -7,17 +7,24 @@ import LoginPage from "./components/LoginPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PostList from "./pages/PostList";
 import PostModal from "./components/PostModal";
-import useStore from "./store/useStore";
+import useStore from "./store/useStore"; // UI 상태 관리
+import useLocalStore from "./store/useLocalStore"; // 로그인 상태 관리
 import CreatePost from "./components/CreatePost";
 import UpdatePost from "./components/UpdatePost";
-import ProfilePage from "./components/ProfilePage"; // 개인정보 페이지 컴포넌트 import
+import ProfilePage from "./components/ProfilePage";
 import Footer from "./layout/Footer";
 
 const queryClient = new QueryClient();
 
 function App() {
-  const { isLogin, loggedInEmail, setIsLogin, setLoggedInEmail, selectedPost } =
-    useStore();
+  // UI 상태를 관리하는 useStore
+  const { currentComponent, setComponent, selectedPost } = useStore(
+    (state) => state
+  );
+
+  // 로그인 상태를 관리하는 useLocalStore
+  const { isLogin, loggedInEmail, setIsLogin, setLoggedInEmail } =
+    useLocalStore((state) => state);
 
   useEffect(() => {
     const email = localStorage.getItem("loggedInEmail");
@@ -27,23 +34,23 @@ function App() {
     }
   }, [setLoggedInEmail, setIsLogin]);
 
+  // 로그인 처리 함수
   const handleLogin = (email) => {
     setLoggedInEmail(email);
     setIsLogin(true);
-    localStorage.setItem("loggedInEmail", email);
-    window.location.href = "/";
+    localStorage.setItem("loggedInEmail", email); // 로컬 스토리지에 이메일 저장
+    window.location.href = "/"; // 로그인 후 리디렉션
   };
 
+  // 로그아웃 처리 함수
   const handleLogout = () => {
     setLoggedInEmail("");
     setIsLogin(false);
-    localStorage.removeItem("loggedInEmail");
-    window.location.href = "/";
+    localStorage.removeItem("loggedInEmail"); // 로컬 스토리지에서 이메일 삭제
+    window.location.href = "/"; // 로그아웃 후 리디렉션
   };
 
-  const currentComponent = useStore((state) => state.currentComponent);
-  const setComponent = useStore((state) => state.setComponent);
-
+  // 게시물 목록으로 이동하는 함수
   const handlePostList = () => {
     setComponent("postList");
   };
@@ -51,7 +58,7 @@ function App() {
   return (
     <Router>
       <QueryClientProvider client={queryClient}>
-        <div className="flex flex-col items-center ">
+        <div className="flex flex-col items-center">
           <div className="max-w-3xl mx-auto w-full flex flex-col flex-grow">
             {/* Header */}
             <header className="flex justify-between items-center p-5 border-b-2 border-orange-500">

@@ -3,6 +3,7 @@ package matnam_zang.demo.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,29 +14,42 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-// user 테이블 : 사용자 정보 저장
-@Entity // JPA의 엔티티임을 나타내는 어노테이션
+@Entity
 @Data
-@Table(name = "user") // 데이터베이스에 매핑될 테이블의 이름을 정의
+@Table(name = "user")
+@Schema(description = "사용자 정보 저장을 위한 엔티티")
 public class User {
-    @Id // 이 필드가 이 엔티티의 기본 키 (primary key)
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 기본 키의 값이 자동 생성
+    
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    @Schema(description = "사용자 ID", example = "1")
     private Long userId;
 
+    @Schema(description = "사용자 이름", example = "john_doe")
     private String username;
+
+    @Schema(description = "사용자 이메일", example = "john.doe@example.com")
     private String email;
+
+    @Schema(description = "사용자 비밀번호", example = "password123")
     private String password;
+
+    @Schema(description = "사용자 계정 생성일", example = "2024-11-13T15:53:02")
     private LocalDateTime userCreateAt;
+
+    @Schema(description = "사용자 계정 수정일", example = "2024-11-14T10:00:00")
     private LocalDateTime userUpdateAt;
 
-    // recipe 테이블과 일대다 관계 (recipe 엔티티에서 user라는 외래키로 참조)
-    @OneToMany(mappedBy = "user") // 이때 OneToMany쪽의 일인쪽의 테이블을 mappedBy
+    @OneToMany(mappedBy = "user") 
+    @Schema(description = "사용자가 작성한 레시피 목록")
     private List<Recipe> recipes;
 
     @OneToMany(mappedBy = "user")
+    @Schema(description = "사용자가 작성한 리뷰 목록")
     private List<Review> reviews;
 
     @OneToMany(mappedBy = "user")
+    @Schema(description = "사용자가 좋아요한 레시피 목록")
     private List<Favorite> favorites;
 
     // 엔티티가 처음 저장되기 전에 호출되어 userCreateAt 설정
