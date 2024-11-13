@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MyRecipesDto {
+public class BoardRecipesDto {
     private Long recipeId;
     private String title;
     private List<ImageDto> img;

@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.transaction.Transactional;
+import matnam_zang.demo.dto.BoardRecipeDto;
+import matnam_zang.demo.dto.BoardRecipesDto;
 import matnam_zang.demo.dto.ImageDto;
-import matnam_zang.demo.dto.MyRecipeDto;
-import matnam_zang.demo.dto.MyRecipesDto;
 import matnam_zang.demo.dto.ReviewDto;
 import matnam_zang.demo.dto.UserRecipeDto;
 import matnam_zang.demo.entity.Category;
@@ -308,8 +308,8 @@ public class UserService {
         recipeRepository.delete(recipe);
     }
     
-    // // 나의 레시피 외부 확인
-    public List<MyRecipesDto> findMyRecipes(String token){
+    // 나의 레시피 외부 확인
+    public List<BoardRecipesDto> findMyRecipes(String token){
         String username = tokenProvider.getUsernameFromToken(token);
 
         if (username == null) {
@@ -327,11 +327,11 @@ public class UserService {
                     .collect(Collectors.toList());
 
             // 각 레시피에 대한 이미지를 미리 조회합니다.
-            Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()
-                    .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
+             Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()
+                   .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
 
             // 레시피 DTO 리스트를 생성합니다.
-            List<MyRecipesDto> myRecipesDtos = recipes.stream()
+            List<BoardRecipesDto> myRecipesDtos = recipes.stream()
                     .map(recipe -> {
                         List<Image> images = recipeImagesMap.getOrDefault(recipe.getRecipeId(),
                                 Collections.emptyList());
@@ -341,7 +341,7 @@ public class UserService {
 
                         
 
-                        return new MyRecipesDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos);
+                        return new BoardRecipesDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos);
                     })
                     .collect(Collectors.toList());
             return myRecipesDtos;
@@ -350,8 +350,8 @@ public class UserService {
         }
     }
 
-    // 나의 레시피 내부 확인
-    public List<MyRecipeDto> findMyRecipe(String token) {
+    // 나의 레시피 내부 확인(나의 레시피 클릭시 상세목록)
+    public List<BoardRecipeDto> findMyRecipe(String token) {
         String username = tokenProvider.getUsernameFromToken(token);
 
         if (username == null) {
@@ -377,7 +377,7 @@ public class UserService {
                     .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
 
             // 레시피 DTO 리스트를 생성합니다.
-            List<MyRecipeDto> myRecipeDtos = recipes.stream()
+            List<BoardRecipeDto> myRecipeDtos = recipes.stream()
                     .map(recipe -> {
                         List<Image> images = recipeImagesMap.getOrDefault(recipe.getRecipeId(),
                                 Collections.emptyList());
@@ -399,7 +399,7 @@ public class UserService {
 
                         
 
-                        return new MyRecipeDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos,
+                        return new BoardRecipeDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos,
                                 recipe.getRecipeDescription(), recipe.getUser().getUserId(), favoriteCount, reviewCount, userFavorite, reviews);
                     })
                     .collect(Collectors.toList());

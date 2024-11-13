@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import matnam_zang.demo.dto.MyRecipeDto;
-import matnam_zang.demo.dto.MyRecipesDto;
+import matnam_zang.demo.dto.BoardRecipeDto;
+import matnam_zang.demo.dto.BoardRecipesDto;
 import matnam_zang.demo.dto.ReviewDto;
 import matnam_zang.demo.dto.UserRecipeDto;
 import matnam_zang.demo.entity.Recipe;
@@ -101,15 +101,17 @@ public class UserController {
         }
     }
 
-    // 나의 레시피 외부 확인 (MyRecipes(MyRecipesDto))
+    
+
+    // 나의 레시피 외부 확인 (MyRecipes(UserRecipesDto))
     @GetMapping("/myRecipes")
     public ResponseEntity<?> findMyRecipes(@RequestHeader("Authorization") String token){
         try {
             String bearerToken = token.substring(7);
             System.out.println(bearerToken);
 
-            List<MyRecipesDto> findUserRecipes = userService.findMyRecipes(bearerToken);
-            return ResponseEntity.ok(findUserRecipes);
+            List<BoardRecipesDto> findMyRecipes = userService.findMyRecipes(bearerToken);
+            return ResponseEntity.ok(findMyRecipes);
 
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body("Error creating recipe: " + e.getMessage());
@@ -123,7 +125,7 @@ public class UserController {
             String bearerToken = token.substring(7);
             System.out.println(bearerToken);
 
-            List<MyRecipeDto> findUserRecipes = userService.findMyRecipe(bearerToken);
+            List<BoardRecipeDto> findUserRecipes = userService.findMyRecipe(bearerToken);
             return ResponseEntity.ok(findUserRecipes);
 
         } catch (RuntimeException e) {
