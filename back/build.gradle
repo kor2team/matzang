@@ -43,6 +43,7 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
 }
 
+// junit5 를 사용해서 src/test/java 아래의 테스트 클래스 자동인식하도록 함
 tasks.named('test') {
 	useJUnitPlatform()
 }
