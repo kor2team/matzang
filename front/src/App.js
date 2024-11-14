@@ -23,30 +23,33 @@ function App() {
   );
 
   // 로그인 상태를 관리하는 useLocalStore
-  const { isLogin, loggedInEmail, setIsLogin, setLoggedInEmail } =
-    useLocalStore((state) => state);
+  const { isLogin, loggedInEmail, setIsLogin, setUser } = useLocalStore(
+    (state) => state
+  );
 
   useEffect(() => {
     const email = localStorage.getItem("loggedInEmail");
     if (email) {
-      setLoggedInEmail(email);
+      setUser({ email, token: localStorage.getItem("auth_token") });
       setIsLogin(true); // 로그인 상태로 설정
     }
-  }, [setLoggedInEmail, setIsLogin]);
+  }, [setUser, setIsLogin]);
 
   // 로그인 처리 함수
-  const handleLogin = (email) => {
-    setLoggedInEmail(email);
+  const handleLogin = (email, token) => {
+    setUser({ email, token });
     setIsLogin(true);
     localStorage.setItem("loggedInEmail", email); // 로컬 스토리지에 이메일 저장
+    localStorage.setItem("auth_token", token); // 토큰도 로컬 스토리지에 저장
     window.location.href = "/"; // 로그인 후 리디렉션
   };
 
   // 로그아웃 처리 함수
   const handleLogout = () => {
-    setLoggedInEmail("");
+    setUser({ email: "", token: "" });
     setIsLogin(false);
     localStorage.removeItem("loggedInEmail"); // 로컬 스토리지에서 이메일 삭제
+    localStorage.removeItem("auth_token"); // 로컬 스토리지에서 토큰 삭제
     window.location.href = "/"; // 로그아웃 후 리디렉션
   };
 

@@ -19,12 +19,11 @@ function LoginPage({ onLogin }) {
       onSuccess: (loginData) => {
         const { token } = loginData;
         setUser({ email, token }); // 로그인 성공 시 유저 정보 저장
-        console.log(email, token);
         onLogin(email); // 로그인 성공 시 부모 컴포넌트의 onLogin 호출
       },
       onError: (error) => {
         alert("로그인에 실패하였습니다. 다시 시도해주세요");
-        console.log("로그인 오류: ", error);
+        console.log(error);
       },
     }
   );
@@ -32,7 +31,7 @@ function LoginPage({ onLogin }) {
   // 회원가입 뮤테이션
   const registerMutation = useMutation(
     (newUser) =>
-      registerUser(newUser.username, newUser.email, newUser.password),
+      registerUser(newUser.username, newUser.email, newUser.password), //회원가입
     {
       onSuccess: (data) => {
         console.log("회원가입 성공 응답:", data); // 서버 응답을 확인
@@ -50,9 +49,9 @@ function LoginPage({ onLogin }) {
   // 로그인 처리 함수
   const handleLogin = (e) => {
     e.preventDefault();
-    console.log("로그인 시도:", { username, password }); // 확인용 로그
-    loginMutation.mutate({ username: email, password }); // username에 email 값을 전달
-    console.log("mutate시행후:", { username, password }); // 확인용 로그
+    const loginData = { username: email, password };
+    console.log("상태확인:", { username: email, password }); // email과 password 확인
+    loginMutation.mutate(loginData); // email을 username으로 전달
   };
 
   // 회원가입 처리 함수

@@ -18,19 +18,28 @@ const useLocalStore = create(
 
       // 사용자 정보를 설정하는 함수. 로그인 시 사용되며, isLogin을 true로 설정합니다.
       setUser: (userInfo) => {
-        // userInfo에서 토큰을 분리하고, 로컬 스토리지에 저장합니다.
-        const { token, ...restUserInfo } = userInfo;
+        // userInfo에서 토큰과 이메일을 분리하고, 로컬 스토리지에 저장합니다.
+        const { token, email, ...restUserInfo } = userInfo;
+
+        // 토큰이 있다면 로컬 스토리지에 저장
         if (token) {
           localStorage.setItem("auth_token", token); // 토큰을 "auth_token" 키로 로컬 스토리지에 저장
         }
-        // 사용자 정보를 업데이트하고, 로그인 상태를 true로 설정합니다.
-        set({ user: { ...restUserInfo, isLogin: true } });
+
+        // 이메일이 있다면 상태를 업데이트하고, 로그인 상태를 true로 설정
+        if (email) {
+          set({
+            user: { ...restUserInfo, loggedInEmail: email, isLogin: true },
+          }); // 이메일을 loggedInEmail로 설정
+        } else {
+          set({ user: { ...restUserInfo, isLogin: true } }); // 이메일이 없을 경우
+        }
       },
 
       // 사용자 정보를 초기 상태로 재설정하는 함수. 로그아웃 시 사용됩니다.
       clearUser: () => {
         localStorage.removeItem("auth_token"); // 로그아웃 시 토큰을 로컬 스토리지에서 제거
-        set({ user: initialUser });
+        set({ user: initialUser }); // 상태 초기화
       },
     }),
     {

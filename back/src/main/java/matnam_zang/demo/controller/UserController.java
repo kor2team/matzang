@@ -38,42 +38,27 @@ public class UserController {
     @PostMapping("/register")
     @Tag(name = "인증")
     @Operation(summary="회원가입 관리")
-    public ResponseEntity<Map<String, Object>> registerUser(@RequestBody User user) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            userService.registerUser(user);
-            response.put("success", true);
-            response.put("message", "User registered successfully");
-            return ResponseEntity.ok(response); // JSON 형식으로 반환
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Registration failed");
-            return ResponseEntity.status(500).body(response); // 오류 발생 시 JSON 응답
-        }
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
+        userService.registerUser(user);
+        return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping("/login")
     @Tag(name = "인증")
-    @Operation(summary = "로그인 관리")
-    public ResponseEntity<Map<String, Object>> loginUser(@RequestBody Map<String, String> loginRequest) {
-        Map<String, Object> response = new HashMap<>();
+    @Operation(summary="로그인 관리")
+    public ResponseEntity<?> loginUser(@RequestBody Map<String, String> loginRequest) {
         String username = loginRequest.get("username");
         String password = loginRequest.get("password");
-    
-        try {
-            String token = userService.loginUser(username, password);
-    
-            response.put("success", true);
-            response.put("message", "Login successful");
-            response.put("token", token);
-    
-            return ResponseEntity.ok(response); // JSON 형식 응답
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Invalid username or password");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response); // 로그인 실패 시 JSON 형식 응답
-        }
+
+        System.out.println("로그인 요청 - username: " + username);
+        String token = userService.loginUser(username, password);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+
+        return ResponseEntity.ok(response);
     }
+
     @PostMapping("/create-recipe")
     @Tag(name = "레시피 관리")
     @Operation(summary="작성 관리")

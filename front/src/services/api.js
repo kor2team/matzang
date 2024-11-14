@@ -10,11 +10,17 @@ export const registerUser = async (username, email, password) => {
     },
     body: JSON.stringify({ username, email, password }),
   });
-  return response.json();
+  if (response.ok) {
+    return; // 응답 본문을 받지 않고, 상태 코드 200만 확인
+  } else {
+    const error = await response.json();
+    throw new Error(`Registration failed: ${error.message || "Unknown error"}`);
+  }
 };
 
 // 로그인 API 요청
 export const loginUser = async (username, password) => {
+  console.log("로그인 시도 - username:", username, "password:", password);
   const response = await fetch(`${Base_URL}/login`, {
     method: "POST",
     headers: {
