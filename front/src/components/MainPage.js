@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import MainPage_RecipeDescription from "./MainPage_RecipeDescription";
+import MainPageRecipeDescription from "./MainPage_RecipeDescription";
 
 function MainPage() {
   const [isRecipeDescriptionOpen, setIsRecipeDescriptionOpen] = useState(false);
@@ -114,7 +114,7 @@ function MainPage() {
 
       {/* MainPage_RecipeDescription 모달 */}
       {isRecipeDescriptionOpen && selectedRecipe && (
-        <MainPage_RecipeDescription
+        <MainPageRecipeDescription
           isOpen={isRecipeDescriptionOpen}
           onClose={closeRecipeDescriptionModal}
           recipe={selectedRecipe}
