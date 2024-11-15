@@ -15,7 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 
-
 import matnam_zang.demo.dto.YouTubeDto;
 
 @ActiveProfiles("test")
@@ -42,7 +41,8 @@ public class YoutubeServiceTest {
     @Test
     public void testGetYoutubeBySearchName() throws Exception {
         String searchName = "test";
-        String jsonResponse = "{"
+        String jsonResponse = 
+        "{"
         + "\"kind\": \"youtube#searchListResponse\","
         + "\"etag\": \"5Cbvp_FuaRjq2hTIo5FAGBHtSnY\","
         + "\"nextPageToken\": \"CAMQAA\","

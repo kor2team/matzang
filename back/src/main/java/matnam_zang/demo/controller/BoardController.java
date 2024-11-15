@@ -33,10 +33,9 @@ public class BoardController {
 
     // 전체 레시피 내부 확인
     @GetMapping("/getRecipePostAfterAccess")
-    public ResponseEntity<?> findUserRecipe(@RequestHeader("Authorization") String token){
+    public ResponseEntity<?> findUserRecipe(){
         try{
-            String bearerToken = token.substring(7);
-            List<BoardRecipeDto> findUserRecipe = boardService.getRecipePostAfterAccess(bearerToken);
+            List<BoardRecipeDto> findUserRecipe = boardService.getRecipePostAfterAccess();
             return ResponseEntity.ok(findUserRecipe);
         }catch(RuntimeException e){
             return ResponseEntity.badRequest().body("Error creating recipe : " + e.getMessage());
