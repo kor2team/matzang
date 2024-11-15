@@ -1,7 +1,5 @@
 package matnam_zang.demo.service;
 
-import matnam_zang.demo.entity.Image;
-import matnam_zang.demo.entity.Recipe;
 import matnam_zang.demo.entity.User;
 import matnam_zang.demo.repository.UserRepository;
 import matnam_zang.demo.security.TokenProvider;
@@ -15,8 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
