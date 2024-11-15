@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,9 +27,11 @@ public class User {
     private Long userId;
 
     @Schema(description = "사용자 이름", example = "john_doe")
+    @Column(unique = true)
     private String username;
 
     @Schema(description = "사용자 이메일", example = "john.doe@example.com")
+    @Column(unique = true)
     private String email;
 
     @Schema(description = "사용자 비밀번호", example = "password123")
