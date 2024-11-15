@@ -3,13 +3,17 @@ import React from "react";
 const MainPageRecipeDescription = ({ isOpen, onClose, recipe }) => {
   if (!isOpen || !recipe) return null;
 
-  // 조리 방법을 각 단계별로 나누어 배열로 반환
-  const instructions = recipe.cookingMethod
-    ? recipe.cookingMethod.split("\n").map((step, index) => ({
-        step: step.trim(),
-        stepNumber: index + 1,
-      }))
-    : [];
+  // 조리 방법을 배열로 나누기 (manual1, manual2, ...)
+  const instructions = [];
+  for (let i = 1; i <= 10; i++) {
+    const manualKey = `manual${i}`;
+    if (recipe[manualKey]) {
+      instructions.push({
+        step: recipe[manualKey].trim(),
+        stepNumber: i,
+      });
+    }
+  }
 
   return (
     <div
@@ -46,15 +50,31 @@ const MainPageRecipeDescription = ({ isOpen, onClose, recipe }) => {
         <div>
           <h3 className="text-lg font-semibold mb-2">조리 방법</h3>
           <div className="max-h-64 overflow-y-auto">
-            {instructions.map((instruction, index) => (
-              <div key={index} className="mb-2">
-                <p className="text-gray-600 font-semibold">
-                  {instruction.stepNumber}. {instruction.step}
-                </p>
-              </div>
-            ))}
+            {instructions.length > 0 ? (
+              instructions.map((instruction, index) => (
+                <div key={index} className="mb-2">
+                  <p className="text-gray-600 font-semibold">
+                    {instruction.stepNumber}. {instruction.step}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-600">조리 방법이 제공되지 않았습니다.</p>
+            )}
           </div>
         </div>
+        {recipe.recipeTip && (
+          <div className="mt-4">
+            <h4 className="font-semibold">레시피 팁</h4>
+            <p>{recipe.recipeTip}</p>
+          </div>
+        )}
+        {recipe.hashTag && (
+          <div className="mt-2">
+            <h4 className="font-semibold">해시태그</h4>
+            <p>{recipe.hashTag}</p>
+          </div>
+        )}
       </div>
     </div>
   );
