@@ -16,7 +16,7 @@ import matnam_zang.demo.dto.YouTubeDto;
 public class YoutubeService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-
+    
     @Value("${api.youtubeKey}")
     private String youtubeKey;
 
@@ -26,10 +26,11 @@ public class YoutubeService {
     }
 
     public List<YouTubeDto> getYoutubeBySearchName(String searchName) {
-        String apiUrl = String.format("https://www.googleapis.com/youtube/v3/search?key=%s&part=snippet&q=%s&type=video&maxResults=3", youtubeKey, searchName); // API 경로
-        String response = restTemplate.getForObject(apiUrl, String.class);
+        String response = restTemplate.getForObject( "https://www.googleapis.com/youtube/v3/search?key=" + youtubeKey + "&part=snippet&q=" + searchName + "&type=video&maxResults=3", 
+         String.class);
+        System.out.println("https://www.googleapis.com/youtube/v3/search?key=" + youtubeKey + "&part=snippet&q=" + searchName + "&type=video&maxResults=3");
         List<YouTubeDto> videoList = new ArrayList<>();
-
+        System.out.println("Response입니다 : " + response);
         try {
             JsonNode rootNode = objectMapper.readTree(response);
             JsonNode items = rootNode.path("items");
@@ -51,6 +52,7 @@ public class YoutubeService {
 
                 videoList.add(video);
             }
+            System.out.println("response : " + videoList.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
