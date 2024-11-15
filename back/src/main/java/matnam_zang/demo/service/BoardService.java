@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import matnam_zang.demo.dto.BoardRecipeDto;
 import matnam_zang.demo.dto.BoardRecipesDto;
+import matnam_zang.demo.dto.CheckReviewDto;
 import matnam_zang.demo.dto.ImageDto;
 import matnam_zang.demo.entity.Image;
 import matnam_zang.demo.entity.Recipe;
@@ -99,7 +100,7 @@ public class BoardService {
                                 user.getUserId(), recipe.getRecipeId());
 
                         // 현재 review 상황을 체크합니다.
-                        List<String> reviews = reviewRepository
+                        List<CheckReviewDto> reviews = reviewRepository
                                 .checkReviewRecipeId(recipe.getRecipeId());
 
                         return new BoardRecipeDto(recipe.getRecipeId(), recipe.getTitle(),

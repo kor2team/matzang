@@ -17,5 +17,5 @@ public class BoardRecipeDto {
     private Long reviewCount;
     private boolean favorite;
     
-    private List<String> reviews;
+    private List<CheckReviewDto> reviews;
 }
