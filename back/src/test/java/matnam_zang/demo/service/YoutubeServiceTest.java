@@ -6,43 +6,40 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.when;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 
-
 import matnam_zang.demo.dto.YouTubeDto;
 
-@ActiveProfiles("test")
-@SpringBootTest
-@TestPropertySource(locations = "classpath:application.properties")
+@ActiveProfiles("test")  // 'test' 프로파일을 활성화
+@TestPropertySource(locations = "classpath:application.properties")  // 테스트에 사용할 application.properties 파일 지정
 public class YoutubeServiceTest {
 
-    @MockBean
-    private RestTemplate restTemplate;
+    @Mock
+    private RestTemplate restTemplate;  // RestTemplate을 mock으로 설정
 
-    
-    @Autowired
-    private YoutubeService youtubeService;
+    @InjectMocks
+    private YoutubeService youtubeService;  // 실제 YoutubeService 객체가 mock된 RestTemplate을 사용하도록 설정
 
-    @Value("${api.youtubeKey}")
-    private String youtubeKey; // 테스트용 API 키
-    
+    @Value("${api.youtubeKey}")  // application.properties에서 youtubeKey를 읽어옴
+    private String youtubeKey;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        MockitoAnnotations.openMocks(this);  // Mockito 초기화
     }
 
     @Test
     public void testGetYoutubeBySearchName() throws Exception {
         String searchName = "test";
-        String jsonResponse = "{"
+        String jsonResponse = 
+        "{"
         + "\"kind\": \"youtube#searchListResponse\","
         + "\"etag\": \"5Cbvp_FuaRjq2hTIo5FAGBHtSnY\","
         + "\"nextPageToken\": \"CAMQAA\","
@@ -71,12 +68,13 @@ public class YoutubeServiceTest {
         + "]"
         + "}";
 
+        // RestTemplate의 getForObject 호출을 mock하여 위의 jsonResponse를 반환하도록 설정
         when(restTemplate.getForObject(
                 "https://www.googleapis.com/youtube/v3/search?key=" + youtubeKey + "&part=snippet&q=" + searchName + "&type=video&maxResults=3", 
                 String.class))
                 .thenReturn(jsonResponse);
 
-        // expectedVideo의 필드를 아래처럼 맞춰줍니다.
+        // expectedVideo 객체에 예상 결과를 설정
         YouTubeDto expectedVideo = new YouTubeDto();
         expectedVideo.setVideoId("12345");
         expectedVideo.setTitle("Test Video");
@@ -86,11 +84,11 @@ public class YoutubeServiceTest {
         expectedVideo.setThumbnailDefault("http://example.com/default.jpg");
         expectedVideo.setThumbnailMedium("http://example.com/medium.jpg");
         expectedVideo.setThumbnailHigh("http://example.com/high.jpg");
-        
-        // youtubeService가 정상적으로 videoList를 리턴하도록 처리합니다.
+
+        // youtubeService가 실제로 videoList를 반환하는지 테스트
         List<YouTubeDto> videoList = youtubeService.getYoutubeBySearchName(searchName);
         
-        // 결과 비교
+        // 결과 검증
         assertEquals(1, videoList.size());
         assertEquals(expectedVideo.getVideoId(), videoList.get(0).getVideoId());
         assertEquals(expectedVideo.getTitle(), videoList.get(0).getTitle());
