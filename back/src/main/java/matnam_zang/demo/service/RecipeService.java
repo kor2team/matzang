@@ -29,8 +29,8 @@ public class RecipeService {
 
     public List<RecipeDto> getRecipes() {
         System.out.println(recipeKey);
-        String apiUrl = String.format("http://openapi.foodsafetykorea.go.kr/api/%s/COOKRCP01/json/1/100", recipeKey); // API
-                                                                                                                      // 경로
+        String apiUrl = String.format("http://openapi.foodsafetykorea.go.kr/api/%s/COOKRCP01/json/1/5", recipeKey); // API
+                                                                                                                    // 경로
         String response = restTemplate.getForObject(apiUrl, String.class); // RestTemplate 사용해 API에서 JSON응답을 string 형태로
                                                                            // 받음
         List<RecipeDto> recipeList = new ArrayList<>(); // API를 저장할 리스트 선언 (이때 리스트의 형태는 미리 정해둔 DTO의 list)
@@ -56,11 +56,28 @@ public class RecipeService {
                 recipe.setRecipeTip(recipeNode.path("RCP_NA_TIP").asText()); // 레시피 팁
                 recipe.setHashTag(recipeNode.path("HASH_TAG").asText()); // 해시태그
                 recipe.setCategory(recipeNode.path("RCP_PAT2").asText()); // 카테고리
-                recipe.setManual(recipeNode.path("MANUAL").asText()); // 조리 방법 설명
                 recipe.setMainImage(recipeNode.path("ATT_FILE_NO_MAIN").asText()); // 메인 이미지
 
                 // MANUAL_IMG 필드 매핑
-                for (int i = 1; i <= 20; i++) {
+                for (int i = 1; i <= 10; i++) {
+                    String manualField = "MANUAL" + String.format("%02d", i); // 각 조리 이미지 필드 이름 동적생성 (ex. "MANUAL01")
+                    String manualValue = recipeNode.path(manualField).asText(); // 해당 필드의 값 가져옴
+                    switch (i) {
+                        case 1 -> recipe.setManual1(manualValue);
+                        case 2 -> recipe.setManual2(manualValue);
+                        case 3 -> recipe.setManual3(manualValue);
+                        case 4 -> recipe.setManual4(manualValue);
+                        case 5 -> recipe.setManual5(manualValue);
+                        case 6 -> recipe.setManual6(manualValue);
+                        case 7 -> recipe.setManual7(manualValue);
+                        case 8 -> recipe.setManual8(manualValue);
+                        case 9 -> recipe.setManual9(manualValue);
+                        case 10 -> recipe.setManual10(manualValue);
+                    }
+                }
+
+                // MANUAL_IMG 필드 매핑
+                for (int i = 1; i <= 10; i++) {
                     String manualImgField = "MANUAL_IMG" + String.format("%02d", i); // 각 조리 이미지 필드 이름 동적생성 (ex.
                                                                                      // "MANUAL_IMG01")
                     String manualImgValue = recipeNode.path(manualImgField).asText(); // 해당 필드의 값 가져옴
@@ -123,11 +140,28 @@ public class RecipeService {
                 recipe.setRecipeTip(recipeNode.path("RCP_NA_TIP").asText());
                 recipe.setHashTag(recipeNode.path("HASH_TAG").asText());
                 recipe.setCategory(recipeNode.path("RCP_PAT2").asText());
-                recipe.setManual(recipeNode.path("MANUAL").asText());
                 recipe.setMainImage(recipeNode.path("ATT_FILE_NO_MAIN").asText());
 
                 // MANUAL_IMG 필드 매핑
-                for (int i = 1; i <= 20; i++) {
+                for (int i = 1; i <= 10; i++) {
+                    String manualField = "MANUAL" + String.format("%02d", i); // 각 조리 이미지 필드 이름 동적생성 (ex. "MANUAL01")
+                    String manualValue = recipeNode.path(manualField).asText(); // 해당 필드의 값 가져옴
+                    switch (i) {
+                        case 1 -> recipe.setManual1(manualValue);
+                        case 2 -> recipe.setManual2(manualValue);
+                        case 3 -> recipe.setManual3(manualValue);
+                        case 4 -> recipe.setManual4(manualValue);
+                        case 5 -> recipe.setManual5(manualValue);
+                        case 6 -> recipe.setManual6(manualValue);
+                        case 7 -> recipe.setManual7(manualValue);
+                        case 8 -> recipe.setManual8(manualValue);
+                        case 9 -> recipe.setManual9(manualValue);
+                        case 10 -> recipe.setManual10(manualValue);
+                    }
+                }
+
+                // MANUAL_IMG 필드 매핑
+                for (int i = 1; i <= 10; i++) {
                     String manualImgField = "MANUAL_IMG" + String.format("%02d", i);
                     String manualImgValue = recipeNode.path(manualImgField).asText();
                     switch (i) {
@@ -141,16 +175,6 @@ public class RecipeService {
                         case 8 -> recipe.setManualImg8(manualImgValue);
                         case 9 -> recipe.setManualImg9(manualImgValue);
                         case 10 -> recipe.setManualImg10(manualImgValue);
-                        case 11 -> recipe.setManualImg11(manualImgValue);
-                        case 12 -> recipe.setManualImg12(manualImgValue);
-                        case 13 -> recipe.setManualImg13(manualImgValue);
-                        case 14 -> recipe.setManualImg14(manualImgValue);
-                        case 15 -> recipe.setManualImg15(manualImgValue);
-                        case 16 -> recipe.setManualImg16(manualImgValue);
-                        case 17 -> recipe.setManualImg17(manualImgValue);
-                        case 18 -> recipe.setManualImg18(manualImgValue);
-                        case 19 -> recipe.setManualImg19(manualImgValue);
-                        case 20 -> recipe.setManualImg20(manualImgValue);
                     }
                 }
 
@@ -202,11 +226,28 @@ public class RecipeService {
                 recipe.setRecipeTip(recipeNode.path("RCP_NA_TIP").asText());
                 recipe.setHashTag(recipeNode.path("HASH_TAG").asText());
                 recipe.setCategory(recipeNode.path("RCP_PAT2").asText());
-                recipe.setManual(recipeNode.path("MANUAL").asText());
                 recipe.setMainImage(recipeNode.path("ATT_FILE_NO_MAIN").asText());
 
                 // MANUAL_IMG 필드 매핑
-                for (int i = 1; i <= 20; i++) {
+                for (int i = 1; i <= 10; i++) {
+                    String manualField = "MANUAL" + String.format("%02d", i); // 각 조리 이미지 필드 이름 동적생성 (ex. "MANUAL01")
+                    String manualValue = recipeNode.path(manualField).asText(); // 해당 필드의 값 가져옴
+                    switch (i) {
+                        case 1 -> recipe.setManual1(manualValue);
+                        case 2 -> recipe.setManual2(manualValue);
+                        case 3 -> recipe.setManual3(manualValue);
+                        case 4 -> recipe.setManual4(manualValue);
+                        case 5 -> recipe.setManual5(manualValue);
+                        case 6 -> recipe.setManual6(manualValue);
+                        case 7 -> recipe.setManual7(manualValue);
+                        case 8 -> recipe.setManual8(manualValue);
+                        case 9 -> recipe.setManual9(manualValue);
+                        case 10 -> recipe.setManual10(manualValue);
+                    }
+                }
+
+                // MANUAL_IMG 필드 매핑
+                for (int i = 1; i <= 10; i++) {
                     String manualImgField = "MANUAL_IMG" + String.format("%02d", i);
                     String manualImgValue = recipeNode.path(manualImgField).asText();
                     switch (i) {
@@ -220,16 +261,6 @@ public class RecipeService {
                         case 8 -> recipe.setManualImg8(manualImgValue);
                         case 9 -> recipe.setManualImg9(manualImgValue);
                         case 10 -> recipe.setManualImg10(manualImgValue);
-                        case 11 -> recipe.setManualImg11(manualImgValue);
-                        case 12 -> recipe.setManualImg12(manualImgValue);
-                        case 13 -> recipe.setManualImg13(manualImgValue);
-                        case 14 -> recipe.setManualImg14(manualImgValue);
-                        case 15 -> recipe.setManualImg15(manualImgValue);
-                        case 16 -> recipe.setManualImg16(manualImgValue);
-                        case 17 -> recipe.setManualImg17(manualImgValue);
-                        case 18 -> recipe.setManualImg18(manualImgValue);
-                        case 19 -> recipe.setManualImg19(manualImgValue);
-                        case 20 -> recipe.setManualImg20(manualImgValue);
                     }
                 }
 

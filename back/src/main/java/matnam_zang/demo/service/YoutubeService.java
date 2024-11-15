@@ -27,7 +27,7 @@ public class YoutubeService {
 
     public List<YouTubeDto> getYoutubeBySearchName(String searchName) {
         String response = restTemplate.getForObject( "https://www.googleapis.com/youtube/v3/search?key=" + youtubeKey + "&part=snippet&q=" + searchName + "&type=video&maxResults=3", 
-         String.class);
+        String.class);
         System.out.println("https://www.googleapis.com/youtube/v3/search?key=" + youtubeKey + "&part=snippet&q=" + searchName + "&type=video&maxResults=3");
         List<YouTubeDto> videoList = new ArrayList<>();
         System.out.println("Response입니다 : " + response);
