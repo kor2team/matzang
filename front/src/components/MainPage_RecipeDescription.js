@@ -4,16 +4,21 @@ const MainPageRecipeDescription = ({ isOpen, onClose, recipe }) => {
   if (!isOpen || !recipe) return null;
 
   // 조리 방법을 배열로 나누기 (manual1, manual2, ...)
-  const instructions = [];
-  for (let i = 1; i <= 10; i++) {
-    const manualKey = `manual${i}`;
-    if (recipe[manualKey]) {
-      instructions.push({
-        step: recipe[manualKey].trim(),
-        stepNumber: i,
-      });
-    }
-  }
+
+  const instructions = Array.from({ length: 10 }, (_, i) => {
+    const manualKey = `manual${i + 1}`;
+    return recipe[manualKey]?.trim()
+      ? { step: recipe[manualKey].trim(), stepNumber: i + 1 }
+      : null;
+  }).filter(Boolean); // 필터링: null이 아닌 경우만 반환
+
+  // 레시피 제목을 제외한 재료 처리
+  const cleanedIngredients = recipe.ingredients
+    ? recipe.ingredients.replace(
+        new RegExp(`^${recipe.recipeName}\\s*`, "i"),
+        ""
+      )
+    : "";
 
   return (
     <div
@@ -39,7 +44,7 @@ const MainPageRecipeDescription = ({ isOpen, onClose, recipe }) => {
           className="w-full h-40 object-cover rounded mb-4"
         />
         <p className="text-gray-700 mb-4">
-          <strong>재료:</strong> {recipe.ingredients}
+          <strong>재료:</strong> {cleanedIngredients}
         </p>
         <p className="text-gray-700 mb-4">
           <strong>칼로리:</strong> {recipe.calorieInfo} kcal
