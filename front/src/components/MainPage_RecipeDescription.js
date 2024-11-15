@@ -3,13 +3,17 @@ import React from "react";
 const MainPageRecipeDescription = ({ isOpen, onClose, recipe }) => {
   if (!isOpen || !recipe) return null;
 
-  // 조리 방법이 한 문자열로 되어 있는 경우, 이를 배열로 분리합니다.
-  const instructions = recipe.instructions
-    ? recipe.instructions.split("\n").map((step, index) => ({
-        step: step.trim(), // 각 단계에서 앞뒤 공백 제거
-        stepNumber: index + 1, // 단계 번호
-      }))
-    : [];
+  // 조리 방법을 배열로 나누기 (manual1, manual2, ...)
+  const instructions = [];
+  for (let i = 1; i <= 10; i++) {
+    const manualKey = `manual${i}`;
+    if (recipe[manualKey]) {
+      instructions.push({
+        step: recipe[manualKey].trim(),
+        stepNumber: i,
+      });
+    }
+  }
 
   return (
     <div
@@ -26,26 +30,51 @@ const MainPageRecipeDescription = ({ isOpen, onClose, recipe }) => {
         >
           X
         </button>
-        <h2 className="text-xl font-bold text-center mb-4">{recipe.title}</h2>
+        <h2 className="text-2xl font-bold text-center mb-4">
+          {recipe.recipeName}
+        </h2>
         <img
-          src={recipe.imageUrl}
-          alt={recipe.title}
-          className="w-full h-[200px] object-cover rounded mb-4"
+          src={recipe.mainImage}
+          alt={recipe.recipeName}
+          className="w-full h-40 object-cover rounded mb-4"
         />
-        <p className="text-gray-700 mb-4">{recipe.description}</p>
+        <p className="text-gray-700 mb-4">
+          <strong>재료:</strong> {recipe.ingredients}
+        </p>
+        <p className="text-gray-700 mb-4">
+          <strong>칼로리:</strong> {recipe.calorieInfo} kcal
+        </p>
+        <p className="text-gray-700 mb-4">
+          <strong>나트륨:</strong> {recipe.sodiumInfo} mg
+        </p>
         <div>
           <h3 className="text-lg font-semibold mb-2">조리 방법</h3>
           <div className="max-h-64 overflow-y-auto">
-            {/* 단계별로 렌더링 */}
-            {instructions.map((instruction, index) => (
-              <div key={index} className="mb-2">
-                <p className="text-gray-600 font-semibold">
-                  {instruction.stepNumber}. {instruction.step}
-                </p>
-              </div>
-            ))}
+            {instructions.length > 0 ? (
+              instructions.map((instruction, index) => (
+                <div key={index} className="mb-2">
+                  <p className="text-gray-600 font-semibold">
+                    {instruction.stepNumber}. {instruction.step}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-600">조리 방법이 제공되지 않았습니다.</p>
+            )}
           </div>
         </div>
+        {recipe.recipeTip && (
+          <div className="mt-4">
+            <h4 className="font-semibold">레시피 팁</h4>
+            <p>{recipe.recipeTip}</p>
+          </div>
+        )}
+        {recipe.hashTag && (
+          <div className="mt-2">
+            <h4 className="font-semibold">해시태그</h4>
+            <p>{recipe.hashTag}</p>
+          </div>
+        )}
       </div>
     </div>
   );
