@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
@@ -19,16 +18,14 @@ public class RecipeService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${api.recipeKey}")
-    private String recipeKey;
 
     public RecipeService(RestTemplate restTemplate, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
 
-    public List<RecipeDto> getRecipes() {
-        System.out.println(recipeKey);
+    public List<RecipeDto> getRecipes(String recipeKey) {
+        System.out.println("r" + recipeKey);
         String apiUrl = String.format("http://openapi.foodsafetykorea.go.kr/api/%s/COOKRCP01/json/1/5", recipeKey); // API
                                                                                                                     // 경로
         String response = restTemplate.getForObject(apiUrl, String.class); // RestTemplate 사용해 API에서 JSON응답을 string 형태로
@@ -104,7 +101,7 @@ public class RecipeService {
     }
 
     // RCP_WAY2 값을 파라미터로 받아서 레시피를 검색하는 메서드
-    public List<RecipeDto> getRecipesByCookingName(String cookingName) {
+    public List<RecipeDto> getRecipesByCookingName(String cookingName, String recipeKey) {
         // ex.
         // http://openapi.foodsafetykorea.go.kr/api/keyId/serviceId/dataType/startIdx/endIdx
         // API URL 정의 (파라미터를 추가하기 위해 String.format을 사용)
@@ -189,7 +186,7 @@ public class RecipeService {
     }
 
     // RCP_PARTS_DTLS 값을 파라미터로 받아서 레시피를 검색하는 메서드 (요리재료 and)
-    public List<RecipeDto> getRecipesByIngredients(@RequestParam("searchIngredient") List<String> searchIngredient) {
+    public List<RecipeDto> getRecipesByIngredients(@RequestParam("searchIngredient") List<String> searchIngredient, String recipeKey) {
         // 쉼표로 재료를 연결하여 URL 파라미터로 사용
         String joinedIngredients = String.join(",", searchIngredient);
 
