@@ -16,12 +16,10 @@ import matnam_zang.demo.dto.RecipeDto;
 @Service
 public class RecipeService {
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
 
 
-    public RecipeService(RestTemplate restTemplate, ObjectMapper objectMapper) {
+    public RecipeService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
     }
 
     public List<RecipeDto> getRecipes(String recipeKey) {
@@ -33,9 +31,10 @@ public class RecipeService {
         List<RecipeDto> recipeList = new ArrayList<>(); // API를 저장할 리스트 선언 (이때 리스트의 형태는 미리 정해둔 DTO의 list)
 
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(response); // JSON 응답을 JsonNode로 파싱
             JsonNode recipes = rootNode.path("COOKRCP01").path("row"); // JSON 경로 따라 "COOKRCP01" 아래의 "row"배열을 가져옴
-
+            System.out.println(recipes);
             // 들어온 레시피 수만큼 진행
             for (JsonNode recipeNode : recipes) {
                 RecipeDto recipe = new RecipeDto();
@@ -115,6 +114,7 @@ public class RecipeService {
         List<RecipeDto> recipeList = new ArrayList<>();
 
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
             // JSON 응답을 JsonNode로 파싱
             JsonNode rootNode = objectMapper.readTree(response);
             // JSON 경로를 따라 "COOKRCP01" 아래의 "row" 배열을 가져옴
@@ -203,6 +203,7 @@ public class RecipeService {
 
         try {
             // JSON 응답을 JsonNode로 파싱
+            ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(response);
             JsonNode recipes = rootNode.path("COOKRCP01").path("row");
 

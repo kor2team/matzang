@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import matnam_zang.demo.dto.BoardRecipeDto;
@@ -18,28 +17,24 @@ import matnam_zang.demo.repository.FavoriteRepository;
 import matnam_zang.demo.repository.ImageRepository;
 import matnam_zang.demo.repository.RecipeRepository;
 import matnam_zang.demo.repository.ReviewRepository;
-import matnam_zang.demo.repository.UserRepository;
-import matnam_zang.demo.security.TokenProvider;
 
 @Service
 public class BoardService {
-    @Autowired
-    private TokenProvider tokenProvider;
 
-    @Autowired
-    private RecipeRepository recipeRepository;
+    private final RecipeRepository recipeRepository;
+    private final ImageRepository imageRepository;
+    private final ReviewRepository reviewRepository;
+    private final FavoriteRepository favoriteRepository;
 
-    @Autowired
-    private ImageRepository imageRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ReviewRepository reviewRepository;
-
-    @Autowired
-    private FavoriteRepository favoriteRepository;
+    public BoardService(RecipeRepository recipeRepository,
+                        ImageRepository imageRepository,
+                        ReviewRepository reviewRepository,
+                        FavoriteRepository favoriteRepository) {
+        this.recipeRepository = recipeRepository;
+        this.imageRepository = imageRepository;
+        this.reviewRepository = reviewRepository;
+        this.favoriteRepository = favoriteRepository;
+    }
 
     public List<BoardRecipesDto> getRecipePostBeforeAccess() {
         List<Recipe> recipes = recipeRepository.findAll();
@@ -86,8 +81,6 @@ public class BoardService {
                     long reviewCount = reviewRepository
                             .countByRecipeId(recipe.getRecipeId());
 
-                    
-
                     // 현재 review 상황을 체크합니다.
                     List<CheckReviewDto> reviews = reviewRepository
                             .checkReviewRecipeId(recipe.getRecipeId());
@@ -101,7 +94,5 @@ public class BoardService {
                 })
                 .collect(Collectors.toList());
         return myRecipeDtos;
-
     }
-
 }
