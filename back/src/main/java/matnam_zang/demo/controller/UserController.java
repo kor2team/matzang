@@ -128,6 +128,19 @@ public class UserController {
         }
     }
 
+    /** 내가 좋아요 누른 게시물 관리 */ 
+    @GetMapping("/myFavoriteRecipe")
+    @Tag(name="게시물 관리/내가 좋아요를 누른 게시물 관리")
+    public ResponseEntity<?> RecipeUserFavorite(@RequestHeader("Authorization") String token) {
+        try {
+            String bearerToken = token.substring(7);
+            List<BoardRecipeDto> findUserRecipes = userService.RecipeUserFavorite(bearerToken);
+            return ResponseEntity.ok(findUserRecipes);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error retrieving recipe details: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/create-review/{recipe_id}")
     @Tag(name = "게시물 관리/리뷰 관리")
     @Operation(summary="작성 관리")
