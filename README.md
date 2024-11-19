@@ -13,12 +13,27 @@ React
 [style] : 디자인 관련 변경사항<br>
 [docs] : 문서 관련 변경(README.md수정)<br>
 
-### 11/06 추가내용
+### 사용스택 ###
 
-1. 게시물 작성 페이지 수정
-2. 로그인한 이메일 버튼 눌렀을 때 회원정보 관리 페이지 추가
-3. 검색 페이지에 정확순, 최신순 기능 추가(db로 작성 날짜 저장할 경우 사용)
-4. 모든 css파일 tailwind css로 변경
-5. 로그인 페이지에서 회원가입 페이지 추가
-6. footer 적용
-7. 반응형 적용
+Front : React, zustand, tailwind, react-query, axios
+Back : springboot
+db : mysql
+etc : recipe API, youtube API
+ide : vscode
+status management : git
+api docs management : swagger-ui
+testcode : (back) junit5, mockito, springtest / (front)
+pipe line : git action
+distribution : aws
+builder : webpack
+
+### 작업자
+< front developer >
+- 박명환
+- 이윤서
+- 권한결
+
+< back developer >
+- 김준용
+- 성은우
+
