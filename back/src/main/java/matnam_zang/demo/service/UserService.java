@@ -18,6 +18,8 @@ import matnam_zang.demo.dto.BoardRecipeDto;
 import matnam_zang.demo.dto.BoardRecipesDto;
 import matnam_zang.demo.dto.CheckReviewDto;
 import matnam_zang.demo.dto.ImageDto;
+import matnam_zang.demo.dto.IngredientDto;
+import matnam_zang.demo.dto.InstructionDto;
 import matnam_zang.demo.dto.ReviewDto;
 import matnam_zang.demo.dto.UserRecipeDto;
 import matnam_zang.demo.entity.Category;
@@ -373,6 +375,10 @@ public class UserService {
             // 각 레시피에 대한 이미지를 미리 조회합니다.
             Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()
                     .collect(Collectors.groupingBy(image -> image.getRecipe().getRecipeId()));
+            Map<Long, List<Ingredient>> recipeIngredientsMap = ingredientRepository.findAll().stream()
+                    .collect(Collectors.groupingBy(ingredient -> ingredient.getRecipe().getRecipeId()));
+            Map<Long, List<Instruction>> recipeInstructionsMap = instructionRepository.findAll().stream()
+                    .collect(Collectors.groupingBy(instruction -> instruction.getRecipe().getRecipeId()));
 
             // 레시피 DTO 리스트를 생성합니다.
             List<BoardRecipeDto> myRecipeDtos = recipes.stream()
@@ -382,7 +388,22 @@ public class UserService {
                         List<ImageDto> imageDtos = images.stream()
                                 .map(image -> new ImageDto(image.getImageId(), image.getImageUrl()))
                                 .collect(Collectors.toList());
-                        
+
+
+                        // cookTime
+                        int cookTime = recipeRepository.cookingTime(recipe.getRecipeId());
+
+                        List<Ingredient> ingredients = recipeIngredientsMap.getOrDefault(recipe.getRecipeId(),
+                                Collections.emptyList());
+                        List<IngredientDto> ingredientDtos = ingredients.stream()
+                                .map(ingredient -> new IngredientDto(ingredient.getIngredient()))
+                                .collect(Collectors.toList());
+
+                        List<Instruction> instructions = recipeInstructionsMap.getOrDefault(recipe.getRecipeId(),
+                                Collections.emptyList());
+                        List<InstructionDto> instructionDtos = instructions.stream()
+                                .map(instruction -> new InstructionDto(instruction.getStepNumber(), instruction.getInstructionDescription()))
+                                .collect(Collectors.toList());
                         // 좋아요 수를 계산합니다.
                         long favoriteCount = favoriteRepository.countByRecipeId(recipe.getRecipeId());
 
@@ -398,7 +419,7 @@ public class UserService {
                         
 
                         return new BoardRecipeDto(recipe.getRecipeId(), recipe.getTitle(), imageDtos,
-                                recipe.getRecipeDescription(), recipe.getUser().getUserId(), favoriteCount, reviewCount, userFavorite, reviews);
+                                recipe.getRecipeDescription(), recipe.getUser().getUserId(), favoriteCount, reviewCount, userFavorite, reviews, cookTime,ingredientDtos,instructionDtos);
                     })
                     .collect(Collectors.toList());
             return myRecipeDtos;

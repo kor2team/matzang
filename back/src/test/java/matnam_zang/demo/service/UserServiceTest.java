@@ -335,12 +335,12 @@ public class UserServiceTest {
     // 좋아요 추가
     @Test
     void favorite_Success(){
-
+        
     }
 
     @Test
     void favorite_JwtExpired(){
-        
+
     }
     
     // 좋아요 해제

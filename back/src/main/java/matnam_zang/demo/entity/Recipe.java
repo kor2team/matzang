@@ -48,7 +48,7 @@ public class Recipe {
 
     @Schema(description = "조리 시간 (분 단위)", example = "45")
     private int cookTime;
-
+    
     @Schema(description = "난이도 수준", example = "중간")
     private String difficultyLevel;
 

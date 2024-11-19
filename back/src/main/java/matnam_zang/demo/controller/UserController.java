@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import matnam_zang.demo.dto.BoardRecipeDto;
 import matnam_zang.demo.dto.BoardRecipesDto;
 import matnam_zang.demo.dto.ReviewDto;
@@ -25,8 +26,6 @@ import matnam_zang.demo.dto.UserRecipeDto;
 import matnam_zang.demo.entity.Recipe;
 import matnam_zang.demo.entity.User;
 import matnam_zang.demo.service.UserService;
-
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -116,7 +115,7 @@ public class UserController {
             return ResponseEntity.badRequest().body("Error retrieving recipes: " + e.getMessage());
         }
     }
-
+    /** 요리시간 재료 요리방법 */
     @GetMapping("/myPostAfterAccess")
     @Tag(name = "게시물 관리/나의 게시물 관리")
     public ResponseEntity<?> getRecipePostAfterAccess(@RequestHeader("Authorization") String token) {

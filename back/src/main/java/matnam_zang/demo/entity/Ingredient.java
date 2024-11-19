@@ -2,6 +2,7 @@ package matnam_zang.demo.entity;
 
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,4 +32,9 @@ public class Ingredient {
 
     @Schema(description = "재료 이름", example = "설탕")
     private String ingredientName;
+
+    public String getIngredient() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getIngredient'");
+    }
 }
