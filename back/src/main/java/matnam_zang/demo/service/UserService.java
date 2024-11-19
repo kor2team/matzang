@@ -397,7 +397,7 @@ public class UserService {
                         List<Ingredient> ingredients = recipeIngredientsMap.getOrDefault(recipe.getRecipeId(),
                                 Collections.emptyList());
                         List<IngredientDto> ingredientDtos = ingredients.stream()
-                                .map(ingredient -> new IngredientDto(ingredient.getIngredient()))
+                                .map(ingredient -> new IngredientDto(ingredient.getIngredientName()))
                                 .collect(Collectors.toList());
 
                         List<Instruction> instructions = recipeInstructionsMap.getOrDefault(recipe.getRecipeId(),
@@ -601,7 +601,7 @@ public class UserService {
         
                             List<Ingredient> ingredients = recipeIngredientsMap.getOrDefault(recipe.getRecipeId(), Collections.emptyList());
                             List<IngredientDto> ingredientDtos = ingredients.stream()
-                                    .map(ingredient -> new IngredientDto(ingredient.getIngredient()))
+                                    .map(ingredient -> new IngredientDto(ingredient.getIngredientName()))
                                     .collect(Collectors.toList());
         
                             List<Instruction> instructions = recipeInstructionsMap.getOrDefault(recipe.getRecipeId(), Collections.emptyList());

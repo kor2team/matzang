@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class IngredientDto {
-    private String ingredient;
+    private String ingredientName;
 }

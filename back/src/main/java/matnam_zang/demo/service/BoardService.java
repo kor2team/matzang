@@ -90,7 +90,7 @@ public class BoardService {
                                                         Collections.emptyList());
                                         List<IngredientDto> ingredientDtos = ingredients.stream()
                                                         .map(ingredient -> new IngredientDto(
-                                                                        ingredient.getIngredient()))
+                                                                        ingredient.getIngredientName()))
                                                         .collect(Collectors.toList());
 
                                         List<Instruction> instructions = recipeInstructionsMap.getOrDefault(
