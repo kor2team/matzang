@@ -15,17 +15,17 @@ React
 
 ### 사용스택 ###
 
-Front : React, zustand, tailwind, react-query, axios
-Back : springboot
-db : mysql
-etc : recipe API, youtube API
-ide : vscode
-status management : git
-api docs management : swagger-ui
-testcode : (back) junit5, mockito, springtest / (front)
-pipe line : git action
-distribution : aws
-builder : webpack
+Front : React, zustand, tailwind, react-query, axios <br>
+Back : springboot <br>
+db : mysql <br>
+etc : recipe API, youtube API <br>
+ide : vscode <br>
+status management : git <br>
+api docs management : swagger-ui <br>
+testcode : (back) junit5, mockito, springtest / (front) <br>
+pipe line : git action <br>
+distribution : aws <br>
+builder : webpack <br>
 
 ### 작업자
 < front developer >
