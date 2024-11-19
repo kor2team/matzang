@@ -559,7 +559,8 @@ public class UserService {
 
     // 내가 좋아요 누른 게시물
     public List<BoardRecipeDto> RecipeUserFavorite(String token) {
-        String username = tokenProvider.getUsernameFromToken(token);
+        String bearerToken = token.substring(7);
+        String username = tokenProvider.getUsernameFromToken(bearerToken);
 
         if (username == null) {
             throw new RuntimeException("Invalid token or user not authenticated");
@@ -632,6 +633,24 @@ public class UserService {
         } else {
             throw new RuntimeException("User not found");
         }
+    }
+
+    public Long getUserId(String token) {
+        
+        String bearerToken = token.substring(7);
+        String username = tokenProvider.getUsernameFromToken(bearerToken);
+
+        if (username == null) {
+            throw new RuntimeException("Invalid token or user not authenticated");
+        }
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if(optionalUser.isPresent()){
+            User user = optionalUser.get();
+            return user.getUserId();
+        }else {
+            throw new RuntimeException("User not found");
+        }
+        
     }
 
     
