@@ -24,7 +24,7 @@ public class RecipeService {
 
     public List<RecipeDto> getRecipes(String recipeKey) {
         System.out.println("r" + recipeKey);
-        String apiUrl = String.format("http://openapi.foodsafetykorea.go.kr/api/%s/COOKRCP01/json/1/5", recipeKey); // API
+        String apiUrl = String.format("http://openapi.foodsafetykorea.go.kr/api/%s/COOKRCP01/json/1/1000/RCP_PARTS_DTLS=소금", recipeKey); // API
                                                                                                                     // 경로
         String response = restTemplate.getForObject(apiUrl, String.class); // RestTemplate 사용해 API에서 JSON응답을 string 형태로
                                                                            // 받음
