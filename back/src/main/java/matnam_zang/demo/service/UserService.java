@@ -434,6 +434,7 @@ public class UserService {
             // 리뷰 생성
             reviewRepository.save(review);
         }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not found User");
     }
 
     // 리뷰 수정
@@ -475,8 +476,8 @@ public class UserService {
         }
 
         String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
-
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        User user = optionalUser.orElseThrow(() -> new RuntimeException("User not found"));
 
         // 삭제를 원하는 리뷰 찾기
         reviewRepository.findById(reviewId)

@@ -61,4 +61,9 @@ public class Review {
     public void preUpdate() {
         this.reviewUpdateAt = LocalDateTime.now(); // 엔티티 수정 시 현재 시간 설정
     }
+
+    public void setId(Long reviewId2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setId'");
+    }
 }
