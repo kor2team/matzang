@@ -17,7 +17,16 @@ public class RecipeDto {
     private String recipeTip; // RCP_NA_TIP
     private String hashTag; // HASH_TAG
     private String category; // RCP_PAT2
-    private String manual; // MANUAL
+    private String manual1; // MANUAL_01
+    private String manual2; // MANUAL_02
+    private String manual3; // MANUAL_03
+    private String manual4; // MANUAL_04
+    private String manual5; // MANUAL_05
+    private String manual6; // MANUAL_06
+    private String manual7; // MANUAL_07
+    private String manual8; // MANUAL_08
+    private String manual9; // MANUAL_09
+    private String manual10; // MANUAL_10
     private String mainImage; // ATT_FILE_NO_MAIN
     private String manualImg1; // MANUAL_IMG01
     private String manualImg2; // MANUAL_IMG02

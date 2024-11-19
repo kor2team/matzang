@@ -50,9 +50,8 @@ public class UserController {
         String username = loginRequest.get("username");
         String password = loginRequest.get("password");
 
-        System.out.println("로그인 요청 - username: " + username);
         String token = userService.loginUser(username, password);
-        
+
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
 

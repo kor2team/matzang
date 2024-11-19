@@ -2,11 +2,11 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Spring Boot-DemoApplication<back>",
+      "name": "Spring Boot-DemoApplication<demo-back>",
       "request": "launch",
       "cwd": "${workspaceFolder}",
       "mainClass": "matnam_zang.demo.DemoApplication",
-      "projectName": "back",
+      "projectName": "demo-back",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
     }

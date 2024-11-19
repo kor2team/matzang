@@ -1,38 +1,52 @@
+import useLocalStore from "../store/useLocalStore"; // 상태 관리 파일 가져오기
+
 // API 기본 URL 설정
 const Base_URL = "http://localhost:8080/api/auth"; // 기본 URL 수정
 
-// 회원가입 API 요청
-export const registerUser = async (username, email, password) => {
-  const response = await fetch(`${Base_URL}/register`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, email, password }),
-  });
-  if (response.ok) {
-    return; // 응답 본문을 받지 않고, 상태 코드 200만 확인
-  } else {
-    const error = await response.json();
-    throw new Error(`Registration failed: ${error.message || "Unknown error"}`);
-  }
+//레시피 전체보기 목록
+export const fetchAllRecipes = async () => {
+  const response = await fetch(
+    "http://localhost:8080/api/all/getRecipePostAfterAccess",
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const data = await response.json();
+  return data; // 데이터가 { posts: [...] } 형식인지 확인
 };
 
-// 로그인 API 요청
-export const loginUser = async (username, password) => {
-  console.log("로그인 시도 - username:", username, "password:", password);
-  const response = await fetch(`${Base_URL}/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, password }),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Login failed: ${error.message || "Unknown error"}`);
-  }
+// 나의 레시피 목록 가져오기 API 요청 (Before Access)
+export const fetchMyRecipesBeforeAccess = async () => {
+  const token = useLocalStore.getState().getToken();
 
+  if (!token) {
+    throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
+  }
+  const response = await fetch(`${Base_URL}/myPostBeforeAccess`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.json();
+};
+
+// 나의 레시피 상세 목록 가져오기 API 요청 (After Access)
+export const fetchMyRecipesAfterAccess = async () => {
+  const token = useLocalStore.getState().getToken();
+
+  if (!token) {
+    throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
+  }
+  const response = await fetch(`${Base_URL}/myPostBeforeAccess`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.json();
 };
 
@@ -45,8 +59,21 @@ export const createRecipe = async (token, recipeData) => {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(recipeData),
-  });
-  return response.json();
+  }); // 응답 본문 확인
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    throw new Error("서버 오류: " + errorText);
+  }
+
+  // HTTP 상태 코드 확인
+  if (response.ok) {
+    return { success: true }; // 성공 여부만 반환
+  } else {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    return { success: false, message: errorText };
+  }
 };
 
 // 레시피 수정 API 요청
@@ -66,28 +93,6 @@ export const updateRecipe = async (token, recipeId, updatedData) => {
 export const deleteRecipe = async (token, recipeId) => {
   const response = await fetch(`${Base_URL}/delete-recipe/${recipeId}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.json();
-};
-
-// 나의 레시피 목록 가져오기 API 요청 (Before Access)
-export const fetchMyRecipesBeforeAccess = async (token) => {
-  const response = await fetch(`${Base_URL}/myPostBeforeAccess`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.json();
-};
-
-// 나의 레시피 상세 목록 가져오기 API 요청 (After Access)
-export const fetchMyRecipesAfterAccess = async (token) => {
-  const response = await fetch(`${Base_URL}/myPostAfterAccess`, {
-    method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },

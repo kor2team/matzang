@@ -1,51 +1,65 @@
-// PostList.js
 import useStore from "../store/useStore";
 import { useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import useLocalStore from "../store/useLocalStore";
 
 function PostList() {
   const navigate = useNavigate();
 
+  // Zustand에서 필요한 상태와 함수 가져오기
+
   const {
-    openModal,
     activeTab,
-    setActiveTab,
-    filterUserPosts,
-    setFilterUserPosts,
-    filterLikedPosts,
-    setFilterLikedPosts,
-    isLogin,
     setComponent,
-    loggedInEmail,
-    loadAllRecipes,
+    posts,
+    userPosts,
+    setActiveTab,
+    fetchPosts,
+    fetchUserPosts,
+    openModal,
   } = useStore();
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const inputRef = useRef(null);
+  // 검색어 상태 관리]
+  const [searchQuery, setSearchQuery] = useState(""); //검색어상태
+  const inputRef = useRef(null); // 입력창 참조
 
+  // 게시물 작성 버튼 클릭 시 호출되는 함수
   const handleCreatePost = () => {
-    if (!isLogin) {
+    const token = useLocalStore.getState().getToken(); //zustand에서 현재 토큰 가져오기
+    if (!token) {
+      // 로그인 상태가 아니면 경고 메시지를 표시하고 로그인 페이지로 이동
       alert("로그인이 필요한 서비스입니다");
       navigate("/login");
     } else {
+      // 로그인 상태이면 게시물 작성 컴포넌트로 전환
       setComponent("createPost");
     }
   };
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteQuery({
-      queryKey: [
-        "posts",
-        activeTab,
-        filterUserPosts,
-        filterLikedPosts,
-        searchQuery,
-      ],
-      queryFn: ({ pageParam = 1 }) => loadAllRecipes(pageParam),
-      getNextPageParam: (lastPage) => lastPage.nextPage,
-    });
+  // 초기 데이터 로드 및 탭 변경 처리
+  useEffect(() => {
+    if (activeTab === "all") {
+      fetchPosts();
+    } else if (activeTab === "user") {
+      fetchUserPosts();
+    }
+  }, [activeTab, fetchPosts, fetchUserPosts]);
 
+  // 필터링된 게시물 가져오기
+  const getFilteredPosts = () => {
+    let currentPosts = activeTab === "user" ? userPosts : posts;
+
+    if (searchQuery) {
+      currentPosts = currentPosts.filter((post) =>
+        post.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    return currentPosts;
+  };
+
+  const filteredPosts = getFilteredPosts();
+
+  // 검색 아이콘 클릭 시 입력창 포커스
   const handleSearchIconClick = () => {
     inputRef.current.focus();
   };
@@ -70,89 +84,67 @@ function PostList() {
         </span>
       </div>
 
-      {/* 필터링 버튼들 */}
-      <div className="flex flex-col sm:flex-row justify-center mb-5 gap-1 ">
+      {/* 게시물 필터링 버튼 */}
+      <div className="flex flex-row justify-center mb-5">
         <button
-          onClick={() => {
-            setFilterUserPosts(false);
-            setFilterLikedPosts(false);
-            setActiveTab("all");
-          }}
+          onClick={() => setActiveTab("all")}
           className={`px-4 py-2 ${
             activeTab === "all" ? "bg-orange-500 text-white" : "bg-gray-200"
           } rounded-md border border-card w-1/4 text-center`}
         >
-          전체글 보기
+          <div className="flex flex-col items-center">
+            <span>전체 글</span>
+            <span>보기</span>
+          </div>
         </button>
         <button
-          onClick={() => {
-            setFilterUserPosts(true);
-            setFilterLikedPosts(false);
-            setActiveTab("user");
-          }}
+          onClick={() => setActiveTab("user")}
           className={`px-4 py-2 ${
             activeTab === "user" ? "bg-orange-500 text-white" : "bg-gray-200"
           } border border-card w-1/4 text-center rounded-md`}
         >
-          내가 쓴 글 보기
+          <div className="flex flex-col items-center">
+            <span>내가 쓴</span>
+            <span>글 보기</span>
+          </div>
         </button>
         <button
-          onClick={() => {
-            setFilterUserPosts(false);
-            setFilterLikedPosts(true);
-            setActiveTab("liked");
-          }}
+          onClick={() => setActiveTab("user")}
           className={`px-4 py-2 ${
             activeTab === "liked" ? "bg-orange-500 text-white" : "bg-gray-200"
           } rounded-md border border-card w-1/4 text-center`}
         >
-          좋아요한 글 보기
+          <div className="flex flex-col items-center">
+            <span>좋아요한</span>
+            <span>글 보기</span>
+          </div>
         </button>
       </div>
 
       {/* 게시물 리스트 */}
       <div className="p-4 grid grid-cols-2 gap-4 w-full h-4/5 overflow-y-auto">
-        {data?.pages.map((page) =>
-          page.posts.map((post) => (
-            <div
-              key={post.postId}
-              className="bg-white p-4 border border-card rounded-md shadow-card cursor-pointer"
-              onClick={() => openModal(post)}
-            >
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-32 object-cover rounded-md"
-              />
-              <h3 className="text-lg font-semibold mt-2 text-gray-800 text-center">
-                {post.title}
-              </h3>
-              <p className="text-gray-600 mt-1">{post.recipeDescription}</p>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* 더보기 버튼 */}
-      {hasNextPage && (
-        <div className="flex justify-center mt-5">
-          <button
-            onClick={fetchNextPage}
-            disabled={isFetchingNextPage}
-            className="text-white bg-orange-500 w-full max-w-md px-4 py-2 rounded shadow-card"
+        {filteredPosts.map((post) => (
+          <div
+            key={post.id}
+            className="bg-white p-4 border border-card rounded-md shadow-card cursor-pointer"
+            onClick={() => openModal(post)}
           >
-            {isFetchingNextPage ? (
-              "로딩중"
-            ) : (
-              <span className="material-symbols-outlined">add</span>
-            )}
-          </button>
-        </div>
-      )}
+            <img
+              src={post.image}
+              alt={post.title}
+              className="w-full h-32 object-cover rounded-md"
+            />
+            <h3 className="text-lg font-semibold mt-2 text-gray-800 text-center">
+              {post.title}
+            </h3>
+            <p className="text-gray-600 mt-1">{post.recipeDescription}</p>
+          </div>
+        ))}
+      </div>
 
       {/* 게시물 작성 버튼 (우하단 고정) */}
       <button
-        onClick={handleCreatePost}
+        onClick={handleCreatePost} // 게시물 작성 클릭 시 호출
         className="fixed bottom-4 right-4 bg-orange-500 text-white p-4 rounded-full shadow-lg hover:bg-orange-600"
       >
         게시물 작성

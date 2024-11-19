@@ -1,58 +1,53 @@
 package matnam_zang.demo.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Value;
+import matnam_zang.demo.dto.YouTubeDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import matnam_zang.demo.dto.YouTubeDto;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class YoutubeService {
+
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
 
-    @Value("${api.youtubeKey}")
-    private String youtubeKey;
-
-    public YoutubeService(RestTemplate restTemplate, ObjectMapper objectMapper) {
+    public YoutubeService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
     }
 
-    public List<YouTubeDto> getYoutubeBySearchName(String searchName) {
-        String apiUrl = String.format("https://www.googleapis.com/youtube/v3/search?key=%s&part=snippet&q=%s&type=video&maxResults=3", youtubeKey, searchName); // API 경로
-        String response = restTemplate.getForObject(apiUrl, String.class);
+    public List<YouTubeDto> getYoutubeBySearchName(String searchName, String youtubeKey) {
+        String url = "https://www.googleapis.com/youtube/v3/search?key=" + youtubeKey + "&part=snippet&q=" + searchName + "&type=video&maxResults=3";
+
+        // YouTube API 호출
+        String response = restTemplate.getForObject(url, String.class);
+
+        // 응답 JSON 파싱 후 YouTubeDto 리스트로 변환
         List<YouTubeDto> videoList = new ArrayList<>();
-
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(response);
-            JsonNode items = rootNode.path("items");
 
-            for (JsonNode itemNode : items) {
+            for (JsonNode itemNode : rootNode.path("items")) {
                 YouTubeDto video = new YouTubeDto();
-                
                 video.setVideoId(itemNode.path("id").path("videoId").asText());
+                video.setTitle(itemNode.path("snippet").path("title").asText());
+                video.setDescription(itemNode.path("snippet").path("description").asText());
+                video.setPublishedAt(itemNode.path("snippet").path("publishedAt").asText());
+                video.setChannelTitle(itemNode.path("snippet").path("channelTitle").asText());
 
-                JsonNode snippetNode = itemNode.path("snippet");
-                video.setTitle(snippetNode.path("title").asText());
-                video.setDescription(snippetNode.path("description").asText());
-                video.setPublishedAt(snippetNode.path("publishedAt").asText());
-                video.setChannelTitle(snippetNode.path("channelTitle").asText());
-
-                video.setThumbnailDefault(snippetNode.path("thumbnails").path("default").path("url").asText());
-                video.setThumbnailMedium(snippetNode.path("thumbnails").path("medium").path("url").asText());
-                video.setThumbnailHigh(snippetNode.path("thumbnails").path("high").path("url").asText());
+                // Thumbnail URLs
+                video.setThumbnailDefault(itemNode.path("snippet").path("thumbnails").path("default").path("url").asText());
+                video.setThumbnailMedium(itemNode.path("snippet").path("thumbnails").path("medium").path("url").asText());
+                video.setThumbnailHigh(itemNode.path("snippet").path("thumbnails").path("high").path("url").asText());
 
                 videoList.add(video);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // 예외 처리
         }
 
         return videoList;

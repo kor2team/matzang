@@ -1,64 +1,72 @@
 import React, { useState } from "react";
-import { loginUser, registerUser } from "../services/api";
-import { useMutation } from "@tanstack/react-query";
+import axios from "axios"; // axios import 추가
 import useLocalStore from "../store/useLocalStore";
 
 function LoginPage({ onLogin }) {
-  const [email, setEmail] = useState(""); // 사용자 이메일 상태
+  const { setUser } = useLocalStore();
+  const [email, setEmail] = useState(""); // 이메일 상태
+  const [username, setUsername] = useState(""); // 사용자명 상태
   const [password, setPassword] = useState(""); // 비밀번호 상태
   const [confirmPassword, setConfirmPassword] = useState(""); // 비밀번호 확인 상태
-  const [username, setUsername] = useState(""); // 사용자 이름 상태 (회원가입 전용)
   const [isLogin, setIsLogin] = useState(true); // 로그인/회원가입 토글 상태
+  const [error, setError] = useState(""); // 에러 메시지 상태
 
-  const setUser = useLocalStore((state) => state.setUser); // useLocalStore로부터 setUser 가져오기
-
-  // 로그인 뮤테이션
-  const loginMutation = useMutation(
-    (user) => loginUser(user.username, user.password),
-    {
-      onSuccess: (loginData) => {
-        const { token } = loginData;
-        setUser({ email, token }); // 로그인 성공 시 유저 정보 저장
-        onLogin(email); // 로그인 성공 시 부모 컴포넌트의 onLogin 호출
-      },
-      onError: (error) => {
-        alert("로그인에 실패하였습니다. 다시 시도해주세요");
-        console.log(error);
-      },
-    }
-  );
-
-  // 회원가입 뮤테이션
-  const registerMutation = useMutation(
-    (newUser) =>
-      registerUser(newUser.username, newUser.email, newUser.password), //회원가입
-    {
-      onSuccess: (data) => {
-        console.log("회원가입 성공 응답:", data); // 서버 응답을 확인
-        alert("회원가입 성공!");
-        setIsLogin(true); // 회원가입 후 로그인 화면으로 전환
-      },
-      onError: (error) => {
-        console.log(error);
-        alert("회원가입에 실패했습니다. 다시 시도해주세요.");
-        console.error("회원가입 오류:", error);
-      },
-    }
-  );
+  // 백엔드 URL 설정
+  const BACKEND_URL = "http://localhost:8080/api/auth";
 
   // 로그인 처리 함수
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const loginData = { username: email, password };
-    console.log("상태확인:", { username: email, password }); // email과 password 확인
-    loginMutation.mutate(loginData); // email을 username으로 전달
+    if (username && password) {
+      try {
+        // 로그인 API 호출
+        const response = await axios.post(`${BACKEND_URL}/login`, {
+          username,
+          password,
+        });
+
+        // 응답에서 JWT 토큰을 받기
+        const { token } = response.data;
+
+        // 로컬 스토리지에 JWT 토큰 저장
+        localStorage.setItem("authToken", token);
+
+        // 로그인 성공 후, 로그인 상태 처리
+        setUser({ token, email: username });
+        onLogin(username);
+        alert("로그인 성공!");
+      } catch (error) {
+        // 로그인 실패 처리
+        setError("사용자명 또는 비밀번호가 틀렸습니다.");
+      }
+    } else {
+      alert("사용자명과 비밀번호를 입력하세요.");
+    }
   };
 
   // 회원가입 처리 함수
-  const handleSignup = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    if (email && password && password === confirmPassword && username) {
-      registerMutation.mutate({ username, email, password });
+    if (email && username && password && confirmPassword) {
+      if (password !== confirmPassword) {
+        setError("비밀번호가 일치하지 않습니다.");
+        return;
+      }
+      try {
+        // 백엔드 회원가입 API 호출
+        const response = await axios.post(`${BACKEND_URL}/register`, {
+          email,
+          username,
+          password,
+        });
+
+        // 회원가입 성공 처리
+        alert("회원가입 성공!");
+        setIsLogin(true); // 로그인 화면으로 전환
+      } catch (error) {
+        // 에러 처리
+        setError("회원가입 실패: " + (error.response?.data || error.message));
+      }
     } else {
       alert("모든 필드를 정확히 입력해주세요.");
     }
@@ -71,18 +79,35 @@ function LoginPage({ onLogin }) {
           {isLogin ? "로그인" : "회원가입"}
         </h2>
         <form
-          onSubmit={isLogin ? handleLogin : handleSignup}
+          onSubmit={isLogin ? handleLogin : handleRegister}
           className="space-y-4"
         >
+          {!isLogin && (
+            <>
+              <div>
+                <label htmlFor="email" className="block font-medium">
+                  이메일
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                  required
+                />
+              </div>
+            </>
+          )}
           <div>
-            <label htmlFor="email" className="block font-medium">
-              이메일
+            <label htmlFor="username" className="block font-medium">
+              사용자명
             </label>
             <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full p-2 border rounded-md"
               required
             />
@@ -102,35 +127,23 @@ function LoginPage({ onLogin }) {
           </div>
 
           {!isLogin && (
-            <>
-              <div>
-                <label htmlFor="confirmPassword" className="block font-medium">
-                  비밀번호 확인
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="username" className="block font-medium">
-                  닉네임
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)} // username 상태 업데이트
-                  className="w-full p-2 border rounded-md"
-                  required
-                />
-              </div>
-            </>
+            <div>
+              <label htmlFor="confirmPassword" className="block font-medium">
+                비밀번호 확인
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                required
+              />
+            </div>
           )}
+
+          {/* 에러 메시지 표시 */}
+          {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
 
           <button
             type="submit"
@@ -142,7 +155,10 @@ function LoginPage({ onLogin }) {
 
         <div className="mt-4 text-center">
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError(""); // 화면 전환 시 에러 메시지 초기화
+            }}
             className="text-blue-500 hover:underline"
           >
             {isLogin ? "회원가입" : "로그인 화면으로"}

@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.transaction.Transactional;
 import matnam_zang.demo.dto.BoardRecipeDto;
 import matnam_zang.demo.dto.BoardRecipesDto;
+import matnam_zang.demo.dto.CheckReviewDto;
 import matnam_zang.demo.dto.ImageDto;
 import matnam_zang.demo.dto.ReviewDto;
 import matnam_zang.demo.dto.UserRecipeDto;
@@ -392,7 +393,7 @@ public class UserService {
                         boolean userFavorite = favoriteRepository.checkUserFavorite(user.getUserId(), recipe.getRecipeId());
 
                         // 현재 review 상황을 체크합니다.
-                        List<String> reviews = reviewRepository.checkReviewRecipeId(recipe.getRecipeId());
+                        List<CheckReviewDto> reviews = reviewRepository.checkReviewRecipeId(recipe.getRecipeId());
 
                         
 
