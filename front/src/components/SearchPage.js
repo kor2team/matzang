@@ -1,142 +1,167 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
+import axios from "axios";
+import { ClipLoader } from "react-spinners";
 
 function SearchPage() {
-  const [isIngredientModalOpen, setIngredientModalOpen] = useState(false);
-  const [isMethodModalOpen, setMethodModalOpen] = useState(false);
-  const [selectedRecipe, setSelectedRecipe] = useState(null);
-  const [selectedIngredients, setSelectedIngredients] = useState([]);
-  const [selectedMethods, setSelectedMethods] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); // 이름 검색어 상태
+  const [ingredientQuery, setIngredientQuery] = useState(""); // 재료 검색어 상태
+  const [filteredRecipes, setFilteredRecipes] = useState([]); // 필터된 레시피 상태
+  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열기/닫기 상태
+  const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false); // 재료 검색 모달 상태
+  const [selectedRecipe, setSelectedRecipe] = useState(null); // 선택된 레시피 상태
+  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const inputRef = useRef(null); // 입력창을 참조하는 ref
-
-  const handleSearchIconClick = () => {
-    inputRef.current.focus(); // 아이콘 클릭 시 입력창에 포커스
+  // 이름 조회 API 호출
+  const handleNameSearch = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/recipes/${searchQuery}`
+      );
+      setFilteredRecipes(response.data);
+    } catch (error) {
+      console.error("레시피 조회 오류:", error);
+    } finally {
+      setIsLoading(false);
+      closeModal();
+    }
   };
 
-  const recipes = [
-    {
-      id: 1,
-      title: "돼지고기 볶음",
-      ingredients: ["돼지고기"],
-      method: "볶음",
-      description: "맛있는 돼지고기 볶음 레시피",
-    },
-    {
-      id: 2,
-      title: "소고기 찜",
-      ingredients: ["소고기"],
-      method: "찜",
-      description: "부드러운 소고기 찜 레시피",
-    },
-    {
-      id: 3,
-      title: "닭고기 구이",
-      ingredients: ["닭고기"],
-      method: "구이",
-      description: "노릇하게 구운 닭고기 레시피",
-    },
-  ];
-
-  const handleIngredientToggle = (ingredient) => {
-    setSelectedIngredients((prevSelected) =>
-      prevSelected.includes(ingredient)
-        ? prevSelected.filter((item) => item !== ingredient)
-        : [...prevSelected, ingredient]
-    );
+  // 재료 조회 API 호출
+  const handleIngredientSearch = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/recipes?searchIngredient=${ingredientQuery}`
+      );
+      setFilteredRecipes(response.data);
+    } catch (error) {
+      console.error("재료 기반 레시피 조회 오류:", error);
+    } finally {
+      setIsLoading(false);
+      setIsIngredientModalOpen(false); // 검색 후 모달 닫기
+    }
+  };
+  // 검색어 입력 처리
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
   };
 
-  const handleMethodToggle = (method) => {
-    setSelectedMethods((prevSelected) =>
-      prevSelected.includes(method)
-        ? prevSelected.filter((item) => item !== method)
-        : [...prevSelected, method]
-    );
+  // 재료 검색어 입력 처리
+  const handleIngredientInputChange = (e) => {
+    setIngredientQuery(e.target.value);
   };
 
-  // 필터링된 레시피
-  const filteredRecipes = recipes.filter(
-    (recipe) =>
-      (selectedIngredients.length === 0 ||
-        selectedIngredients.every((ingredient) =>
-          recipe.ingredients.includes(ingredient.trim())
-        )) &&
-      (selectedMethods.length === 0 ||
-        selectedMethods.includes(recipe.method)) &&
-      recipe.title.replace(/\s+/g, "").includes(searchQuery.replace(/\s+/g, ""))
-  );
+  // Enter 키 처리
+  const handleKeyDown = (e, searchFunction) => {
+    if (e.key === "Enter") {
+      searchFunction();
+    }
+  };
+
+  // 레시피 클릭 시 세부 정보 모달 열기
+  const openRecipeModal = (recipe) => {
+    setSelectedRecipe(recipe);
+  };
+
+  // 모달 닫기
+  const closeModal = () => {
+    setSelectedRecipe(null);
+    setIsModalOpen(false);
+    setIsIngredientModalOpen(false);
+  };
+
+  // 이름 조회 버튼 클릭 시 모달 열기
+  const openNameSearchModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // 재료 조회 버튼 클릭 시 모달 열기
+  const openIngredientSearchModal = () => {
+    setIsIngredientModalOpen(true);
+  };
 
   return (
     <div className="p-5 text-center">
-      {/* 검색 입력 박스 */}
-      <div className="flex items-center justify-center">
-        <input
-          type="text"
-          placeholder="레시피를 검색하세요..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          ref={inputRef} // ref를 입력창에 연결
-          className="ml-6 mb-5 w-72 h-10 p-2 border-2 border-orange-500 rounded-full"
-        />
-        <span
-          className="material-symbols-outlined cursor-pointer ml-2"
-          onClick={handleSearchIconClick} // 아이콘 클릭 시 포커스 함수 호출
-        >
-          search
-        </span>
-      </div>
+      {/* 이름 조회 버튼 */}
+      <button
+        className="bg-orange-500 text-white p-2 rounded mx-2"
+        onClick={openNameSearchModal}
+      >
+        이름조회
+      </button>
 
-      {/* 재료, 조리방식 button */}
-      <div className="mb-5">
-        <button
-          className="w-28 px-5 py-2 text-white text-lg bg-orange-500 rounded-md mx-2"
-          onClick={() => setIngredientModalOpen(true)}
-        >
-          재료
-        </button>
-        <button
-          className="w-28 px-5 py-2 text-white text-lg bg-orange-500 rounded-md mx-2"
-          onClick={() => setMethodModalOpen(true)}
-        >
-          조리방식
-        </button>
-      </div>
+      {/* 재료 조회 버튼 */}
+      <button
+        className="bg-orange-500 text-white p-2 rounded mx-2"
+        onClick={openIngredientSearchModal}
+      >
+        재료조회
+      </button>
 
-      {/* 재료별 검색 모달 */}
+      {/* 이름 조회 모달 */}
+      {isModalOpen && (
+        <div
+          className="modal fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center"
+          onClick={closeModal} // 외부 클릭 시 모달 닫기
+        >
+          <div
+            className="modal-content bg-white p-5 rounded-md w-96 max-w-lg"
+            onClick={(e) => e.stopPropagation()} // 모달 내용 클릭 시 이벤트 버블링 막기
+          >
+            <h2 className="text-2xl mb-4">레시피 검색</h2>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              onKeyDown={(e) => handleKeyDown(e, handleNameSearch)}
+              placeholder="레시피 제목을 입력하세요"
+              className="mb-3 p-2 border-2 w-full"
+            />
+            <button
+              className="bg-orange-500 text-white p-2 rounded mb-4 w-full"
+              onClick={handleNameSearch}
+            >
+              검색
+            </button>
+            <button
+              className="bg-gray-500 text-white p-2 rounded w-full"
+              onClick={closeModal}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 재료 조회 모달 */}
       {isIngredientModalOpen && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-5 rounded-lg w-72 shadow-lg text-left">
-            <h2 className="text-lg font-bold mb-4">재료</h2>
-            <label className="flex items-center mb-2 w-80 whitespace-nowrap">
-              돼지고기
-              <input
-                type="checkbox"
-                checked={selectedIngredients.includes("돼지고기")}
-                onChange={() => handleIngredientToggle("돼지고기")}
-                className="mr-2" // 체크박스와 텍스트 간의 간격을 설정합니다.
-              />
-            </label>
-            <label className="flex items-center mb-2 whitespace-nowrap">
-              소고기
-              <input
-                type="checkbox"
-                checked={selectedIngredients.includes("소고기")}
-                onChange={() => handleIngredientToggle("소고기")}
-                className="mr-2"
-              />
-            </label>
-            <label className="flex items-center mb-2 whitespace-nowrap">
-              닭고기
-              <input
-                type="checkbox"
-                checked={selectedIngredients.includes("닭고기")}
-                onChange={() => handleIngredientToggle("닭고기")}
-                className="mr-2"
-              />
-            </label>
+        <div
+          className="modal fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center"
+          onClick={closeModal} // 외부 클릭 시 모달 닫기
+        >
+          <div
+            className="modal-content bg-white p-5 rounded-md w-96 max-w-lg"
+            onClick={(e) => e.stopPropagation()} // 모달 내용 클릭 시 이벤트 버블링 막기
+          >
+            <h2 className="text-2xl mb-4">재료로 검색</h2>
+            <input
+              type="text"
+              value={ingredientQuery}
+              onChange={handleIngredientInputChange}
+              onKeyDown={(e) => handleKeyDown(e, handleIngredientSearch)}
+              placeholder="사용할 재료를 입력하세요 (쉼표로 구분)"
+              className="mb-3 p-2 border-2 w-full"
+            />
             <button
-              className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md"
-              onClick={() => setIngredientModalOpen(false)}
+              className="bg-orange-500 text-white p-2 rounded mb-4 w-full"
+              onClick={handleIngredientSearch}
+            >
+              검색
+            </button>
+            <button
+              className="bg-gray-500 text-white p-2 rounded w-full"
+              onClick={closeModal}
             >
               닫기
             </button>
@@ -144,95 +169,132 @@ function SearchPage() {
         </div>
       )}
 
-      {/* 조리방식별 검색 모달 */}
-      {isMethodModalOpen && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-5 rounded-lg w-72 shadow-lg text-left">
-            <h2 className="text-lg font-bold mb-4">조리방식</h2>
-            <label className="flex items-center mb-2 whitespace-nowrap">
-              볶음
-              <input
-                type="checkbox"
-                checked={selectedMethods.includes("볶음")}
-                onChange={() => handleMethodToggle("볶음")}
-                className="mr-2"
-              />
-            </label>
-            <label className="flex items-center mb-2 whitespace-nowrap">
-              찜
-              <input
-                type="checkbox"
-                checked={selectedMethods.includes("찜")}
-                onChange={() => handleMethodToggle("찜")}
-                className="mr-2"
-              />
-            </label>
-            <label className="flex items-center mb-2 whitespace-nowrap">
-              구이
-              <input
-                type="checkbox"
-                checked={selectedMethods.includes("구이")}
-                onChange={() => handleMethodToggle("구이")}
-                className="mr-2"
-              />
-            </label>
-            <button
-              className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md"
-              onClick={() => setMethodModalOpen(false)}
-            >
-              닫기
-            </button>
-          </div>
+      {isLoading ? (
+        // 로딩 중일 때 Spinner 표시
+        <div className="fixed inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50 z-50">
+          <ClipLoader
+            color="#FF5722"
+            loading={isLoading}
+            size={50}
+            thickness={5}
+          />
         </div>
-      )}
-
-      {/* 검색 결과 */}
-      <div className="flex flex-col p-5 border-2 border-gray-300 rounded-lg bg-gray-100">
-        {/* 레시피 목록 */}
-        <div className="flex flex-wrap justify-center gap-5">
+      ) : (
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           {filteredRecipes.length > 0 ? (
-            filteredRecipes.map((recipe) => (
+            filteredRecipes.map((recipe, index) => (
               <div
-                key={recipe.id}
-                className="p-5 border border-gray-300 rounded-lg bg-white cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => setSelectedRecipe(recipe)}
+                key={index}
+                className="recipe-item bg-white p-4 rounded-lg shadow-md cursor-pointer"
+                onClick={() => openRecipeModal(recipe)}
               >
-                <h3 className="text-lg font-semibold">{recipe.title}</h3>
+                <img
+                  src={recipe.mainImage}
+                  alt={recipe.recipeName}
+                  className="w-full h-32 object-cover rounded mb-4"
+                />
+                <h3 className="text-xl font-semibold">{recipe.recipeName}</h3>
               </div>
             ))
           ) : (
-            <p>선택된 조건에 해당하는 레시피가 없습니다.</p>
+            <p>검색된 레시피가 없습니다.</p>
           )}
         </div>
-      </div>
+      )}
 
-      {/* 레시피 상세 모달 */}
+      {/* 레시피 상세 정보 모달 */}
       {selectedRecipe && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-5 rounded-lg w-80 shadow-lg text-left recipe-detail-modal">
-            {/* <img
-        src={require(`../assets/images/${selectedRecipe.image}`)}
-        alt={selectedRecipe.title}
-        className="recipe-image mb-4"
-      /> */}
-            <div className="recipe-info">
-              <h2 className="text-lg font-bold mb-2">{selectedRecipe.title}</h2>
-              <p>{selectedRecipe.description}</p>
-              <div className="recipe-ingredients mt-3">
-                <h3 className="font-semibold">재료:</h3>
-                <ul className="list-disc pl-5">
-                  {selectedRecipe.ingredients.map((ingredient, index) => (
-                    <li key={index}>{ingredient}</li>
+        <div
+          className="modal fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center"
+          onClick={closeModal} // 모달 외부를 클릭하면 모달이 닫히도록
+        >
+          <div
+            className="modal-content bg-white p-4 rounded-md max-w-lg w-full relative max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()} // 모달 내부를 클릭하면 닫히지 않도록
+          >
+            {/* 닫기 버튼 */}
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-2 flex items-center justify-center w-10 h-10 bg-orange-500 text-white rounded-full shadow-md hover:bg-orange-600 focus:ring-2 focus:ring-orange-300"
+              aria-label="Close"
+            >
+              X
+            </button>
+
+            {/* 제목 */}
+            <h2 className="text-2xl font-bold text-center mb-4">
+              {selectedRecipe.recipeName}
+            </h2>
+
+            {/* 메인 이미지 */}
+            <img
+              src={selectedRecipe.mainImage}
+              alt={selectedRecipe.recipeName}
+              className="w-full h-56 object-contain rounded mb-4"
+            />
+
+            {/* 상세 정보 */}
+            <p className="text-gray-700 mb-4 border-b border-gray-300 pb-2">
+              <strong>재료:</strong> {selectedRecipe.ingredients}
+            </p>
+            <p className="text-gray-700 mb-4 border-b border-gray-300 pb-2">
+              <strong>칼로리:</strong> {selectedRecipe.calorieInfo} kcal
+            </p>
+            <p className="text-gray-700 mb-4 border-b border-gray-300 pb-2">
+              <strong>나트륨:</strong> {selectedRecipe.sodiumInfo} mg
+            </p>
+
+            {/* 조리 방법 */}
+            <div className="border-b border-gray-300 pb-2">
+              <h3 className="text-lg font-semibold mb-2">조리 방법</h3>
+              <div className="max-h-64 overflow-y-auto">
+                {Array.from(
+                  { length: 10 },
+                  (_, i) => selectedRecipe[`manual${i + 1}`]
+                )
+                  .filter(Boolean)
+                  .map((instruction, uniqueIndex) => (
+                    <div key={uniqueIndex} className="mb-2">
+                      <p className="text-gray-600 font-semibold">
+                        {instruction}
+                      </p>
+                    </div>
                   ))}
-                </ul>
+              </div>
+
+              {/* 조리 과정 이미지 */}
+              <div className="recipe-images flex gap-2 mt-4">
+                {Array.from(
+                  { length: 10 },
+                  (_, i) => selectedRecipe[`manualImg${i + 1}`]
+                )
+                  .filter(Boolean)
+                  .map((img, index) => (
+                    <img
+                      key={index}
+                      src={img}
+                      alt={`Step ${index + 1}`}
+                      className="w-20 h-20 object-cover rounded cursor-pointer"
+                    />
+                  ))}
               </div>
             </div>
-            <button
-              className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md"
-              onClick={() => setSelectedRecipe(null)}
-            >
-              닫기
-            </button>
+
+            {/* 레시피 팁 */}
+            {selectedRecipe.recipeTip && (
+              <div className="mt-4 border-b border-gray-300 pb-2">
+                <h4 className="font-semibold">레시피 팁</h4>
+                <p>{selectedRecipe.recipeTip}</p>
+              </div>
+            )}
+
+            {/* 해시태그 */}
+            {selectedRecipe.hashTag && (
+              <div className="mt-2">
+                <h4 className="font-semibold">해시태그</h4>
+                <p>{selectedRecipe.hashTag}</p>
+              </div>
+            )}
           </div>
         </div>
       )}
