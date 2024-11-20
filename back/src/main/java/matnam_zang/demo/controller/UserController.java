@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -186,12 +187,12 @@ public class UserController {
         }
     }
 
-    @GetMapping("/favorite/{recipe_id}")
+    @PostMapping("/favorite")
     @Tag(name = "게시물 관리/좋아요 관리")
     @Operation(summary = "좋아요 클릭 상태")
     public ResponseEntity<?> favorite(
             @RequestHeader("Authorization") String token,
-            @PathVariable("recipe_id") Long recipeId) {
+            @RequestBody Long recipeId) {
         try {
             String result = userService.favorite(token, recipeId);
             return ResponseEntity.ok(result);
