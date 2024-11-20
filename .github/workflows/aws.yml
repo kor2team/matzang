@@ -37,10 +37,10 @@ jobs:
           # AWS CLI 설정
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set region us-west-2  # 지역 설정 (필요시 수정)
+          aws configure set region ap-northeast-2
 
           # React 애플리케이션을 S3에 배포 예시
-          aws s3 sync ./build/ s3://your-s3-bucket-name --delete
+          aws s3 sync ./build/ s3://junaay --delete
 
   # Spring Boot Backend 빌드, 테스트 및 배포
   backend:
