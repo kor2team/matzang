@@ -289,7 +289,7 @@ const MainPage = () => {
       {/* 유튜브 영상 모달 */}
       {youtubeVideo && youtubeModalOpen && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full relative">
+          <div className="bg-white p-6 rounded-lg max-w-6xl max-h-[90vh] w-full h-full overflow-hidden relative">
             {loading ? (
               <div className="absolute inset-0 flex justify-center items-center">
                 <ClipLoader
@@ -303,17 +303,18 @@ const MainPage = () => {
               <>
                 <iframe
                   width="100%"
-                  height="315"
+                  height="100%"
                   src={`https://www.youtube.com/embed/${youtubeVideo}?autoplay=1`}
                   title="유튜브 영상"
                   frameBorder="0"
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  className="w-full h-full"
                 ></iframe>
 
                 {/* 닫기 버튼 */}
                 <button
-                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 bg-white rounded-full p-2 shadow-md"
+                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 bg-orange-500 rounded-full p-2 shadow-md"
                   onClick={() => setYoutubeModalOpen(false)}
                 >
                   <svg
