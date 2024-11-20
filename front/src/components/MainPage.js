@@ -88,11 +88,11 @@ const MainPage = () => {
         onClick={onClose}
       >
         <div
-          className="bg-white p-5 rounded-lg max-w-4xl w-full flex gap-6"
+          className="bg-white p-5 rounded-lg max-w-4xl w-full h-4/5 overflow-hidden flex gap-6 relative"
           onClick={(e) => e.stopPropagation()} // 내부 클릭 시 닫기 방지
         >
           {/* 레시피 정보 */}
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto p-4">
             <button
               onClick={onClose}
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
@@ -134,6 +134,30 @@ const MainPage = () => {
                 )}
               </div>
             </div>
+            {/* 모든 이미지 표시 */}
+            <div className="recipe-images flex gap-2 mt-4">
+              {[
+                recipe.manualImg1,
+                recipe.manualImg2,
+                recipe.manualImg3,
+                recipe.manualImg4,
+                recipe.manualImg5,
+                recipe.manualImg6,
+                recipe.manualImg7,
+                recipe.manualImg8,
+                recipe.manualImg9,
+                recipe.manualImg10,
+              ]
+                .filter((img) => img) // 빈 이미지 제거
+                .map((img, index) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`Step ${index + 1}`}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                ))}
+            </div>
 
             {recipe.recipeTip && (
               <div className="mt-4">
@@ -151,7 +175,7 @@ const MainPage = () => {
 
           {/* 유튜브 영상 목록 */}
           {videos.length > 0 && (
-            <div className="w-1/3">
+            <div className="w-1/3 overflow-y-auto">
               <h3 className="text-lg font-semibold mb-4">관련된 유튜브 영상</h3>
               <div className="flex flex-col gap-4">
                 {videos.map((video) => (
