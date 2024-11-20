@@ -13,9 +13,11 @@ function PostList() {
     setComponent,
     posts,
     userPosts,
+    favoritePosts,
     setActiveTab,
     fetchPosts,
     fetchUserPosts,
+    favoriteUserPosts,
     openModal,
   } = useStore();
 
@@ -42,18 +44,30 @@ function PostList() {
       fetchPosts();
     } else if (activeTab === "user") {
       fetchUserPosts();
+    } else if (activeTab === "favorite") {
+      favoriteUserPosts();
     }
-  }, [activeTab, fetchPosts, fetchUserPosts]);
+  }, [activeTab, fetchPosts, fetchUserPosts, favoriteUserPosts]);
 
   // 필터링된 게시물 가져오기
   const getFilteredPosts = () => {
-    let currentPosts = activeTab === "user" ? userPosts : posts;
+    let currentPosts;
+
+    if (activeTab === "user") {
+      currentPosts = userPosts;
+    } else if (activeTab === "favorite") {
+      currentPosts = favoritePosts; // favorite 탭의 게시물
+    } else {
+      currentPosts = posts;
+    }
 
     if (searchQuery) {
       currentPosts = currentPosts.filter((post) =>
         post.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+
+    // console.log(`Active Tab: ${activeTab}, Filtered Posts:`, currentPosts); // 확인용
     return currentPosts;
   };
 
@@ -109,9 +123,11 @@ function PostList() {
           </div>
         </button>
         <button
-          onClick={() => setActiveTab("user")}
+          onClick={() => setActiveTab("favorite")}
           className={`px-4 py-2 ${
-            activeTab === "liked" ? "bg-orange-500 text-white" : "bg-gray-200"
+            activeTab === "favorite"
+              ? "bg-orange-500 text-white"
+              : "bg-gray-200"
           } rounded-md border border-card w-1/4 text-center`}
         >
           <div className="flex flex-col items-center">
@@ -127,7 +143,9 @@ function PostList() {
           <div
             key={post.id}
             className="bg-white p-4 border border-card rounded-md shadow-card cursor-pointer"
-            onClick={() => openModal(post)}
+            onClick={() => {
+              openModal(post);
+            }}
           >
             <img
               src={post.image}

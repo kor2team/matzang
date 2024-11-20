@@ -4,7 +4,7 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
+// 요리시간, 재료, 요리방법
 @Data
 @AllArgsConstructor
 public class BoardRecipeDto {
@@ -16,6 +16,8 @@ public class BoardRecipeDto {
     private Long favoriteCount;
     private Long reviewCount;
     private boolean favorite;
-    
     private List<CheckReviewDto> reviews;
+    private int cookTime;
+    private List<IngredientDto> ingredients;
+    private List<InstructionDto> instructions;
 }

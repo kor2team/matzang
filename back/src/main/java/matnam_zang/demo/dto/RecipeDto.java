@@ -48,10 +48,6 @@ public class RecipeDto {
     private String manualImg18; // MANUAL_IMG18
     private String manualImg19; // MANUAL_IMG19
     private String manualImg20; // MANUAL_IMG20
-
-    public void setManualImg16(String manualImgValue) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 }
 
 

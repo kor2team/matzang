@@ -15,39 +15,44 @@ export const fetchAllRecipes = async () => {
     }
   );
   const data = await response.json();
+  // console.log(data);
   return data; // 데이터가 { posts: [...] } 형식인지 확인
 };
 
 // 나의 레시피 목록 가져오기 API 요청 (Before Access)
-export const fetchMyRecipesBeforeAccess = async () => {
+export const fetchMyRecipes = async () => {
   const token = useLocalStore.getState().getToken();
-
+  console.log(token);
   if (!token) {
     throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
   }
-  const response = await fetch(`${Base_URL}/myPostBeforeAccess`, {
+  const response = await fetch(`${Base_URL}/myPostAfterAccess`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.json();
+  const userData = await response.json();
+  console.log(userData);
+  return userData;
 };
 
-// 나의 레시피 상세 목록 가져오기 API 요청 (After Access)
-export const fetchMyRecipesAfterAccess = async () => {
+// 좋아요 레시피 가져오기
+export const fetchFavoriteRecipes = async () => {
   const token = useLocalStore.getState().getToken();
-
+  console.log(token);
   if (!token) {
     throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
   }
-  const response = await fetch(`${Base_URL}/myPostBeforeAccess`, {
+  const response = await fetch(`${Base_URL}/myFavoriteRecipe`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.json();
+  const favoriteData = await response.json();
+  console.log(favoriteData);
+  return favoriteData;
 };
 
 // 레시피 생성 API 요청
@@ -86,7 +91,20 @@ export const updateRecipe = async (token, recipeId, updatedData) => {
     },
     body: JSON.stringify(updatedData),
   });
-  return response.json();
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    throw new Error("서버 오류: " + errorText);
+  }
+
+  // HTTP 상태 코드 확인
+  if (response.ok) {
+    return { success: true }; // 성공 여부만 반환
+  } else {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    return { success: false, message: errorText };
+  }
 };
 
 // 레시피 삭제 API 요청
@@ -96,21 +114,40 @@ export const deleteRecipe = async (token, recipeId) => {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  });
-  return response.json();
+  }); // HTTP 상태 코드 확인
+  if (response.ok) {
+    return { success: true }; // 성공 여부만 반환
+  } else {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    return { success: false, message: errorText };
+  }
 };
 
 // 리뷰 생성 API 요청
-export const createReview = async (token, recipeId, reviewData) => {
+export const createReview = async (token, recipeId, review) => {
   const response = await fetch(`${Base_URL}/create-review/${recipeId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(reviewData),
+    body: JSON.stringify(review), // review 매개변수를 사용
   });
-  return response.json();
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    throw new Error("서버 오류: " + errorText);
+  }
+
+  // HTTP 상태 코드 확인
+  if (response.ok) {
+    return { success: true }; // 성공 여부만 반환
+  } else {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    return { success: false, message: errorText };
+  }
 };
 
 // 리뷰 수정 API 요청
@@ -158,4 +195,24 @@ export const removeFavorite = async (token, recipeId) => {
     },
   });
   return response.json();
+};
+
+// userId 받아오기
+export const fetchSetUserId = async (token) => {
+  try {
+    const response = await fetch(`${Base_URL}/userIdByJwt`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const userId = await response.text();
+    return userId;
+  } catch (error) {
+    console.error("userId 추출에 실패하였습니다:", error);
+    return null;
+  }
 };

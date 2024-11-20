@@ -24,6 +24,7 @@ repositories {
 }
 
 dependencies {
+	testImplementation group: 'org.mockito', name: 'mockito-inline', version: '4.9.0'
     testImplementation 'org.mockito:mockito-core:4.0.0' // Mockito - mocking 기능
     testImplementation 'org.springframework.boot:spring-boot-starter-web' // Spring Boot Test에서 제공하는 MockMvc (HTTP API 테스트)
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa' // JPA 테스트를 위한 DataJpaTest 의존성

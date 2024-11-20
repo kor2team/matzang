@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios"; // axios import 추가
 import useLocalStore from "../store/useLocalStore";
+import { fetchSetUserId } from "../services/api";
 
 function LoginPage({ onLogin }) {
   const { setUser } = useLocalStore();
@@ -31,8 +32,11 @@ function LoginPage({ onLogin }) {
         // 로컬 스토리지에 JWT 토큰 저장
         localStorage.setItem("authToken", token);
 
+        // 서버에서 userId 가져오기
+        const userId = await fetchSetUserId(token);
+        console.log(userId);
         // 로그인 성공 후, 로그인 상태 처리
-        setUser({ token, email: username });
+        setUser({ token, email: username, userId });
         onLogin(username);
         alert("로그인 성공!");
       } catch (error) {

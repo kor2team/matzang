@@ -1,5 +1,9 @@
 import { create } from "zustand";
-import { fetchAllRecipes, fetchMyRecipesAfterAccess } from "../services/api";
+import {
+  fetchAllRecipes,
+  fetchMyRecipes,
+  fetchFavoriteRecipes,
+} from "../services/api";
 
 // Zustand를 이용해 전역 상태 관리
 const useStore = create((set) => ({
@@ -27,7 +31,7 @@ const useStore = create((set) => ({
   // 게시물 데이터
   posts: [],
   userPosts: [],
-  likePosts: [],
+  favoritePosts: [],
 
   // 게시물 가져오기
   fetchPosts: async () => {
@@ -51,7 +55,7 @@ const useStore = create((set) => ({
   // 내가 쓴 게시물 가져오기
   fetchUserPosts: async () => {
     try {
-      const response = await fetchMyRecipesAfterAccess();
+      const response = await fetchMyRecipes();
       const userPosts = response || [];
       set(() => ({
         userPosts,
@@ -60,6 +64,22 @@ const useStore = create((set) => ({
     } catch (error) {
       console.error("Error fetching user posts:", error);
       set({ errorMessage: "게시물을 가져오는 중 문제가 발생했습니다." });
+      throw error;
+    }
+  },
+
+  //좋아요 쓴 게시물 가져오기
+  favoriteUserPosts: async () => {
+    try {
+      const response = await fetchFavoriteRecipes();
+      const favoritePosts = response || [];
+      set(() => ({
+        favoritePosts,
+      }));
+      return { favoritePosts };
+    } catch (error) {
+      console.error("Error fetching like posts:", error);
+      set({ errorMessage: "게시물을 가져오는 중 문제를 발생했습니다." });
       throw error;
     }
   },
@@ -73,7 +93,7 @@ const useStore = create((set) => ({
     set({ filterLikedPosts: isLikedPosts }), // 좋아요한 글 필터링 설정
   setIsLogin: (status) => set({ isLogin: status }), // 로그인 상태 설정
   setLoggedInEmail: (email) => set({ loggedInEmail: email }), // 로그인 이메일 설정
-  setUserId: (id) => set({ userId: id }),
+  setSelectedPost: (post) => set({ selectedPost: post }),
 }));
 
 export default useStore;
