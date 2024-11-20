@@ -15,7 +15,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     long countByRecipeId(@Param("recipeId") Long recipeId);
 
     
-    @Query("SELECT new matnam_zang.demo.dto.CheckReviewDto(r.comment, r.user.userId) FROM Review r WHERE r.recipe.id = :recipeId")
+    @Query("SELECT new matnam_zang.demo.dto.CheckReviewDto(r.comment, r.user.userId, r.reviewId) FROM Review r WHERE r.recipe.id = :recipeId")
     List<CheckReviewDto> checkReviewRecipeId(@Param("recipeId") Long recipeId);
 
 

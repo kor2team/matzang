@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 public class CheckReviewDto {
     private String comment;
     private Long userId;
+    private Long reviewId;
     
 }
