@@ -32,9 +32,5 @@ public class Ingredient {
 
     @Schema(description = "재료 이름", example = "설탕")
     private String ingredientName;
-
-    public String getIngredient() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getIngredient'");
-    }
+    
 }
