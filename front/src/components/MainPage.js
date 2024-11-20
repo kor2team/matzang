@@ -9,8 +9,8 @@ const MainPage = () => {
   const [youtubeVideo, setYoutubeVideo] = useState(null); // 유튜브 영상 데이터
   const [youtubeVideos, setYoutubeVideos] = useState([]); // 유튜브 영상 리스트
 
+  // 레시피 데이터 로딩
   useEffect(() => {
-    // 서버에서 레시피 데이터를 받아오는 함수
     axios
       .get("http://localhost:8080/api/recipes") // API URL을 맞춰주세요
       .then((response) => {
@@ -21,25 +21,24 @@ const MainPage = () => {
       });
   }, []);
 
+  // 레시피 카드 클릭 시 모달 열기 및 유튜브 영상 검색
   const handleCardClick = (recipe) => {
-    setSelectedRecipe(recipe); // 클릭한 레시피 설정
-    setIsModalOpen(true); // 레시피 모달 열기
-
-    fetchYoutubeVideo(recipe.recipeName); // 레시피 제목을 기준으로 유튜브 영상 검색 후 바로 표시
+    setSelectedRecipe(recipe);
+    setIsModalOpen(true);
+    fetchYoutubeVideo(recipe.recipeName); // 레시피 제목을 기준으로 유튜브 영상 검색
   };
 
+  // 모달 닫기
   const handleModalClose = () => {
-    setIsModalOpen(false); // 모달 닫기
-    setYoutubeModalOpen(false); // 유튜브 모달 닫기
-    setSelectedRecipe(null); // 선택된 레시피 초기화
-    setYoutubeVideo(null); // 유튜브 영상 초기화
+    setIsModalOpen(false);
+    setYoutubeModalOpen(false);
+    setSelectedRecipe(null);
+    setYoutubeVideo(null);
   };
 
+  // 유튜브 영상 검색
   const fetchYoutubeVideo = (searchName) => {
-    // 공백을 제거하여 유튜브 API 요청에 사용할 이름으로 변환
     const formattedSearchName = searchName.replace(/\s+/g, ""); // 공백 제거
-
-    // 유튜브 API에서 영상 검색
     axios
       .get(
         `http://localhost:8080/api/youtube/${encodeURIComponent(
@@ -50,8 +49,7 @@ const MainPage = () => {
         if (response.data && response.data.length > 0) {
           setYoutubeVideos(response.data); // 유튜브 영상 리스트 저장
         } else {
-          console.log("No YouTube video found for", searchName);
-          setYoutubeVideos([]); // 유튜브 영상 리스트 비우기
+          setYoutubeVideos([]); // 영상이 없으면 빈 배열로 설정
         }
       })
       .catch((error) => {
@@ -60,24 +58,23 @@ const MainPage = () => {
       });
   };
 
+  // 유튜브 영상 클릭 시 모달 열기
   const handleVideoClick = (videoId) => {
-    setYoutubeVideo(videoId); // 선택된 videoId로 영상 설정
-    setYoutubeModalOpen(true); // 유튜브 모달 열기
+    setYoutubeVideo(videoId);
+    setYoutubeModalOpen(true);
   };
 
-  // 레시피 상세 정보를 보여주는 모달
+  // 레시피 상세 정보 및 유튜브 영상 모달
   const RecipeAndYoutubeModal = ({ isOpen, onClose, recipe, videos }) => {
     if (!isOpen || !recipe) return null;
 
-    // 조리 방법을 배열로 나누기 (manual1, manual2, ...)
     const instructions = Array.from({ length: 10 }, (_, i) => {
       const manualKey = `manual${i + 1}`;
       return recipe[manualKey]?.trim()
         ? { step: recipe[manualKey].trim(), stepNumber: i + 1 }
         : null;
-    }).filter(Boolean); // 필터링: null이 아닌 경우만 반환
+    }).filter(Boolean); // null 제거
 
-    // 레시피 제목을 제외한 재료 처리
     const cleanedIngredients = recipe.ingredients
       ? recipe.ingredients.replace(
           new RegExp(`^${recipe.recipeName}\\s*`, "i"),
@@ -88,13 +85,13 @@ const MainPage = () => {
     return (
       <div
         className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-        onClick={onClose} // 모달 밖 클릭 시 닫기
+        onClick={onClose}
       >
         <div
           className="bg-white p-5 rounded-lg max-w-4xl w-full flex gap-6"
           onClick={(e) => e.stopPropagation()} // 내부 클릭 시 닫기 방지
         >
-          {/* 왼쪽 레시피 정보 */}
+          {/* 레시피 정보 */}
           <div className="flex-1">
             <button
               onClick={onClose}
@@ -126,7 +123,7 @@ const MainPage = () => {
                   instructions.map((instruction, index) => (
                     <div key={index} className="mb-2">
                       <p className="text-gray-600 font-semibold">
-                        {instruction.stepNumber}. {instruction.step}
+                        {instruction.step}
                       </p>
                     </div>
                   ))
@@ -137,6 +134,7 @@ const MainPage = () => {
                 )}
               </div>
             </div>
+
             {recipe.recipeTip && (
               <div className="mt-4">
                 <h4 className="font-semibold">레시피 팁</h4>
@@ -151,7 +149,7 @@ const MainPage = () => {
             )}
           </div>
 
-          {/* 오른쪽 유튜브 영상 목록 */}
+          {/* 유튜브 영상 목록 */}
           {videos.length > 0 && (
             <div className="w-1/3">
               <h3 className="text-lg font-semibold mb-4">관련된 유튜브 영상</h3>
@@ -160,7 +158,7 @@ const MainPage = () => {
                   <div
                     key={video.videoId}
                     className="bg-white p-4 rounded-lg shadow-md cursor-pointer"
-                    onClick={() => handleVideoClick(video.videoId)} // 영상 클릭 시 유튜브 영상 모달 열기
+                    onClick={() => handleVideoClick(video.videoId)}
                   >
                     <img
                       src={video.thumbnailHigh}
@@ -188,11 +186,11 @@ const MainPage = () => {
           <div
             key={recipe.id}
             className="bg-white p-4 rounded-lg shadow-md cursor-pointer"
-            onClick={() => handleCardClick(recipe)} // 카드 클릭 시 상세보기 모달 열기
+            onClick={() => handleCardClick(recipe)}
           >
             <img
-              src={recipe.mainImage} // 레시피 이미지
-              alt={recipe.recipeName} // 레시피 제목을 alt로 사용
+              src={recipe.mainImage}
+              alt={recipe.recipeName}
               className="w-full h-40 object-cover rounded mb-4"
             />
             <h3 className="text-xl font-semibold">{recipe.recipeName}</h3>
@@ -200,7 +198,7 @@ const MainPage = () => {
         ))}
       </div>
 
-      {/* 레시피와 유튜브 영상을 보여주는 모달 */}
+      {/* 레시피 및 유튜브 영상 모달 */}
       <RecipeAndYoutubeModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
@@ -222,13 +220,10 @@ const MainPage = () => {
               allowFullScreen
             ></iframe>
             <button
-              onClick={() => {
-                setYoutubeModalOpen(false); // 모달 닫기
-                setYoutubeVideo(null); // 선택된 유튜브 비디오 초기화
-              }}
-              className="mt-4 text-white bg-red-500 p-2 rounded"
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+              onClick={() => setYoutubeModalOpen(false)}
             >
-              닫기
+              X
             </button>
           </div>
         </div>
