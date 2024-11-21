@@ -22,7 +22,6 @@ export const fetchAllRecipes = async () => {
 // 나의 레시피 목록 가져오기 API 요청 (Before Access)
 export const fetchMyRecipes = async () => {
   const token = useLocalStore.getState().getToken();
-  console.log(token);
   if (!token) {
     throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
   }
@@ -33,14 +32,12 @@ export const fetchMyRecipes = async () => {
     },
   });
   const userData = await response.json();
-  console.log(userData);
   return userData;
 };
 
 // 좋아요 레시피 가져오기
 export const fetchFavoriteRecipes = async () => {
   const token = useLocalStore.getState().getToken();
-  console.log(token);
   if (!token) {
     throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
   }
@@ -50,6 +47,7 @@ export const fetchFavoriteRecipes = async () => {
       Authorization: `Bearer ${token}`,
     },
   });
+  console.log("Favorite posts response:", response);
   const favoriteData = await response.json();
   console.log(favoriteData);
   return favoriteData;
@@ -160,7 +158,20 @@ export const updateReview = async (token, reviewId, reviewData) => {
     },
     body: JSON.stringify(reviewData),
   });
-  return response.json();
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    throw new Error("서버 오류: " + errorText);
+  }
+
+  // HTTP 상태 코드 확인
+  if (response.ok) {
+    return { success: true }; // 성공 여부만 반환
+  } else {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    return { success: false, message: errorText };
+  }
 };
 
 // 리뷰 삭제 API 요청
@@ -171,30 +182,43 @@ export const deleteReview = async (token, reviewId) => {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.json();
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    throw new Error("서버 오류: " + errorText);
+  }
+
+  // HTTP 상태 코드 확인
+  if (response.ok) {
+    return { success: true }; // 성공 여부만 반환
+  } else {
+    const errorText = await response.text();
+    console.error("서버 오류 응답:", errorText);
+    return { success: false, message: errorText };
+  }
 };
 
 // 좋아요 추가 API 요청
 export const addFavorite = async (token, recipeId) => {
-  const response = await fetch(`${Base_URL}/favorite/${recipeId}`, {
+  await fetch(`${Base_URL}/favorite`, {
     method: "POST", // POST로 수정
     headers: {
       Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json", // 이 헤더 추가
     },
+    body: JSON.stringify({ recipeId }), // 요청 본문에 recipeId 포함
   });
-  return response.json();
 };
 
 // 좋아요 삭제 API 요청
 export const removeFavorite = async (token, recipeId) => {
-  const response = await fetch(`${Base_URL}/favorite_cancel/${recipeId}`, {
+  await fetch(`${Base_URL}/favorite_cancel/${recipeId}`, {
     // URL 수정
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.json();
 };
 
 // userId 받아오기

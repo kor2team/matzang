@@ -432,13 +432,14 @@ public class UserService {
     // 리뷰 작성
     public void createReview(String token, Long recipeId, ReviewDto reviewDto) {
         String bearerToken = token.substring(7);
-
+        System.out.println("현재 token값 : " + bearerToken);
         // 1. 토큰 검증
         if (tokenProvider.isTokenExpired(bearerToken)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired");
         }
 
         String username = tokenProvider.getUsernameFromToken(bearerToken); // 토큰에서 사용자명 추출
+        System.out.println("현재 user 이름 : " + username);
 
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
@@ -455,8 +456,9 @@ public class UserService {
 
             // 리뷰 생성
             reviewRepository.save(review);
+        }else{
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not found User");
         }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not found User");
     }
 
     // 리뷰 수정

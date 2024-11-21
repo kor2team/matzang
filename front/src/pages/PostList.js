@@ -46,6 +46,7 @@ function PostList() {
       fetchUserPosts();
     } else if (activeTab === "favorite") {
       favoriteUserPosts();
+      console.log(activeTab);
     }
   }, [activeTab, fetchPosts, fetchUserPosts, favoriteUserPosts]);
 
@@ -139,9 +140,9 @@ function PostList() {
 
       {/* 게시물 리스트 */}
       <div className="p-4 grid grid-cols-2 gap-4 w-full h-4/5 overflow-y-auto">
-        {filteredPosts.map((post) => (
+        {filteredPosts.map((post, index) => (
           <div
-            key={post.id}
+            key={post.id || index}
             className="bg-white p-4 border border-card rounded-md shadow-card cursor-pointer"
             onClick={() => {
               openModal(post);

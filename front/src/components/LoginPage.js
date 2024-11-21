@@ -34,9 +34,8 @@ function LoginPage({ onLogin }) {
 
         // 서버에서 userId 가져오기
         const userId = await fetchSetUserId(token);
-        console.log(userId);
         // 로그인 성공 후, 로그인 상태 처리
-        setUser({ token, email: username, userId });
+        setUser({ token, userName: username, userId });
         onLogin(username);
         alert("로그인 성공!");
       } catch (error) {

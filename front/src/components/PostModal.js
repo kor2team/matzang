@@ -1,5 +1,5 @@
 import useStore from "../store/useStore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   deleteRecipe,
   addFavorite,
@@ -7,39 +7,163 @@ import {
   createReview,
   updateReview,
   deleteReview,
-  fetchAllRecipes,
 } from "../services/api";
 import useLocalStore from "../store/useLocalStore";
 
 function PostModal() {
-  // 상태 및 스토어에서 데이터 가져오기
+  // **Global 상태 및 유틸리티 함수 가져오기**
   const { isModalOpen, closeModal, selectedPost, setComponent, fetchPosts } =
-    useStore();
-  const recipeId = selectedPost?.recipeId;
-  console.log(selectedPost);
-  console.log("레시피아이디:", recipeId);
-  console.log("셀렉된유저아이디:", selectedPost?.userId);
-  const { user } = useLocalStore();
-  const userId = user.userId;
-  console.log("로그인된 유저아이다", userId);
-  // 내부 상태
-  const [newComment, setNewComment] = useState("");
+    useStore(); // 모달 관련 상태와 메서드
+  const recipeId = String(selectedPost?.recipeId); // 선택된 게시물의 ID
+  const { user } = useLocalStore(); // 사용자 정보
+  const numUserId = Number(user.userId); // 사용자 ID (숫자 형변환)
+  const loginUserName = user.userName;
+
+  // **Local 상태 선언**
+  const [newComment, setNewComment] = useState(""); // 새로운 댓글 입력 값
   const [likedByUser, setLikedByUser] = useState(
     selectedPost?.favorite || false
-  );
+  ); // 좋아요 상태
   const [likesCount, setLikesCount] = useState(
     selectedPost?.favoriteCount || 0
+  ); // 좋아요 수
+  const [showComments, setShowComments] = useState(false); // 댓글 섹션 표시 여부
+  const [localSelectedPost, setLocalSelectedPost] = useState(selectedPost); // 선택된 게시물의 로컬 상태
+  //유저내임 상태
+  // **Handlers**
+
+  // 댓글 추가 핸들러
+  const handleAddComment = useCallback(
+    async (e) => {
+      e.preventDefault();
+      const token = useLocalStore.getState().getToken();
+      if (!newComment.trim()) return;
+
+      try {
+        // 댓글 추가 API 호출
+        await createReview(token, recipeId, {
+          review: newComment,
+        });
+
+        // 댓글 추가 후 전체 게시물 갱신
+        await fetchPosts(); // 전체 게시물 다시 불러오기
+
+        // 댓글 추가 성공 후 selectedPost를 새로 갱신
+        const updatedPost = useStore
+          .getState()
+          .posts.find((post) => post.recipeId === Number(recipeId));
+        setLocalSelectedPost(updatedPost); // 로컬 상태 갱신
+
+        // 댓글 추가 성공 시, 유저 이름과 댓글 내용을 로컬 상태에 반영
+        setNewComment(""); // 입력 필드 초기화=
+      } catch (error) {
+        console.error("댓글 추가 중 오류 발생:", error);
+      }
+    },
+    [newComment, recipeId, fetchPosts, setLocalSelectedPost]
   );
-  const [showComments, setShowComments] = useState(false);
-  // 컴포넌트 내부에서 selectedPost를 사용하기 위한 로컬 상태 변수.
-  //useState(selectedPost)를 통해 컴포넌트가 마운트될 때 selectedPost의 값을 복사해 새로운 상태 변수로 사용합니다.
-  const [localSelectedPost, setLocalSelectedPost] = useState(selectedPost);
-  // 모달이 열릴 때 선택된 게시물로 상태 초기화
+  // 댓글 수정 핸들러
+  const handleEditComment = useCallback(
+    async (reviewId) => {
+      const updatedText = prompt("댓글을 수정하세요:"); // 사용자 입력
+      const token = useLocalStore.getState().getToken(); // 사용자 토큰
+
+      if (updatedText) {
+        try {
+          await updateReview(token, reviewId, { review: updatedText }); // 서버 요청
+          const updatedReviews = localSelectedPost.reviews.map((review) =>
+            review.reviewId === reviewId
+              ? { ...review, comment: updatedText }
+              : review
+          );
+          setLocalSelectedPost({
+            ...localSelectedPost,
+            reviews: updatedReviews,
+          }); // 상태 업데이트
+        } catch (error) {
+          console.error("댓글 수정 중 오류 발생:", error);
+        }
+      }
+    },
+    [localSelectedPost]
+  );
+
+  // 댓글 삭제 핸들러
+  const handleDeleteComment = useCallback(
+    async (reviewId) => {
+      const token = useLocalStore.getState().getToken(); // 사용자 토큰
+      try {
+        await deleteReview(token, reviewId); // 서버 요청
+        const updatedReviews = localSelectedPost.reviews.filter(
+          (review) => review.reviewId !== reviewId
+        );
+        setLocalSelectedPost({
+          ...localSelectedPost,
+          reviews: updatedReviews,
+        }); // 상태 업데이트
+      } catch (error) {
+        console.error("댓글 삭제 중 오류 발생:", error);
+      }
+    },
+    [localSelectedPost]
+  );
+  // 좋아요 처리 핸들러
+  const handleLike = useCallback(async () => {
+    const token = useLocalStore.getState().getToken(); // 사용자 토큰
+    console.log(token);
+    console.log(recipeId);
+    console.log(typeof recipeId);
+    if (!token) {
+      console.error("토큰이 없습니다. 로그인이 필요합니다.");
+      return;
+    }
+    try {
+      if (likedByUser) {
+        await removeFavorite(token, recipeId); // 서버 요청 (좋아요 해제)
+        setLikesCount((prev) => prev - 1);
+        setLikedByUser(false);
+      } else {
+        await addFavorite(token, recipeId); // 서버 요청 (좋아요 추가)
+        setLikesCount((prev) => prev + 1);
+        setLikedByUser(true);
+      }
+    } catch (error) {
+      console.error("좋아요 처리 중 오류 발생:", error);
+    }
+  }, [likedByUser, recipeId]);
+
+  // 게시물 삭제 핸들러
+  const handleDeletePost = useCallback(async () => {
+    const token = useLocalStore.getState().getToken(); // 사용자 토큰
+    try {
+      await deleteRecipe(token, recipeId); // 서버 요청
+      closeModal(); // 모달 닫기
+      fetchPosts(); // 게시물 목록 갱신
+    } catch (error) {
+      console.error("게시물 삭제 중 오류 발생:", error);
+    }
+  }, [recipeId, closeModal, fetchPosts]);
+
+  // 게시물 수정 핸들러
+  const handleUpdatePost = useCallback(() => {
+    setComponent("updatePost"); // 수정 모드로 전환
+    closeModal(); // 모달 닫기
+  }, [setComponent, closeModal]);
+
+  // 모달 닫기 핸들러
+  const handleCloseModal = useCallback(() => {
+    setNewComment(""); // 입력값 초기화
+    closeModal(); // 모달 닫기
+  }, [closeModal]);
+
+  // **Effects**
+
+  // 모달이 열릴 때 선택된 게시물 상태 초기화
   useEffect(() => {
     setLocalSelectedPost(selectedPost);
   }, [selectedPost]);
 
-  // 선택된 게시물의 변경사항에 따라 좋아요 및 상태 초기화
+  // 좋아요 상태 초기화 (게시물이 변경될 때마다 실행)
   useEffect(() => {
     if (localSelectedPost) {
       setLikesCount(localSelectedPost.favoriteCount || 0);
@@ -47,98 +171,7 @@ function PostModal() {
     }
   }, [localSelectedPost]);
 
-  // 댓글 추가 핸들러
-  const handleAddComment = async (e) => {
-    e.preventDefault();
-    const token = useLocalStore.getState().getToken();
-    if (!newComment.trim()) return;
-    try {
-      await createReview(token, recipeId, { review: newComment });
-      const allRecipes = await fetchAllRecipes();
-      const updatePost = allRecipes.find(
-        (recipe) => recipe.recipeId === recipeId
-      );
-      if (updatePost) {
-        setLocalSelectedPost(updatePost);
-      }
-      setNewComment("");
-    } catch (error) {
-      console.error("댓글 추가중 에러가 발생했습니다. :", error);
-    }
-  };
-  // 댓글 수정 핸들러
-  const handleEditComment = async (reviewId) => {
-    const updatedText = prompt("댓글을 수정하세요:");
-    const token = useLocalStore.getState().getToken();
-    if (updatedText) {
-      try {
-        const updatedReview = await updateReview(token, reviewId, {
-          review: updatedText,
-        });
-        const updatedReviews = localSelectedPost.reviews.map((review) =>
-          review.id === reviewId ? updatedReview : review
-        );
-        setLocalSelectedPost({ ...localSelectedPost, reviews: updatedReviews }); // 상태 갱신
-      } catch (error) {
-        console.error("댓글 수정 중 오류 발생:", error);
-      }
-    }
-  };
-
-  // 댓글 삭제 핸들러
-  const handleDeleteComment = async (reviewId) => {
-    const token = useLocalStore.getState().getToken();
-    try {
-      await deleteReview(token, reviewId);
-      const updatedReviews = localSelectedPost.reviews.filter(
-        (review) => review.id !== reviewId
-      );
-      setLocalSelectedPost({ ...localSelectedPost, reviews: updatedReviews }); // 상태 갱신
-    } catch (error) {
-      console.error("댓글 삭제 중 오류 발생:", error);
-    }
-  };
-
-  // 좋아요 핸들러
-  const handleLike = async () => {
-    try {
-      if (likedByUser) {
-        await removeFavorite(recipeId);
-        setLikesCount((prev) => prev - 1);
-        setLikedByUser(false);
-      } else {
-        await addFavorite(recipeId);
-        setLikesCount((prev) => prev + 1);
-        setLikedByUser(true);
-      }
-    } catch (error) {
-      console.error("좋아요 처리 중 오류 발생:", error);
-    }
-  };
-
-  // 게시물 삭제 핸들러
-  const handleDeletePost = async () => {
-    const token = useLocalStore.getState().getToken();
-    try {
-      await deleteRecipe(token, recipeId);
-      console.log("삭제 핸들러 레시프아이디", recipeId);
-      closeModal();
-      fetchPosts(); // 게시물 목록 갱신
-    } catch (error) {
-      console.error("게시물 삭제 중 오류 발생:", error);
-    }
-  };
-
-  // 게시물 수정 핸들러
-  const handleUpdatePost = () => {
-    setComponent("updatePost");
-    closeModal();
-  };
-  const handleCloseModal = () => {
-    setNewComment("");
-    closeModal();
-  };
-  // 모달이 열려있지 않거나 선택된 게시물이 없을 경우 렌더링 중단
+  // **조건부 렌더링: 모달이 닫혀있거나 게시물이 없으면 렌더링 중단**
   if (!isModalOpen || !localSelectedPost) return null;
 
   return (
@@ -188,29 +221,27 @@ function PostModal() {
                 {localSelectedPost.recipeDescription}
               </p>
               <p className="text-gray-700 pb-2">
-                요리시간 : {localSelectedPost.cookTime}
+                조리시간 : {localSelectedPost.cookTime}
               </p>
-              <p className="text-gray-700 pb-2">
-                재료 :
-                <ul>
-                  {localSelectedPost.ingredients.map((ingredient, index) => (
-                    <li key={index}>{ingredient.ingredientName}</li>
-                  ))}
-                </ul>
-              </p>
-              <p className="text-gray-700 pb-2">
-                요리방법 :
-                <ul>
-                  {localSelectedPost.instructions.map((instruction, index) => (
-                    <li key={index}>
-                      {instruction.stepNumber}.{" "}
-                      {instruction.instructionDescription}
-                    </li>
-                  ))}
-                </ul>
-              </p>
+              <p className="text-gray-700 pb-2">재료 :</p>
+              <ul>
+                {localSelectedPost.ingredients.map((ingredient, index) => (
+                  <li key={index}>{ingredient.ingredientName}</li>
+                ))}
+              </ul>
+
+              <p className="text-gray-700 pb-2 mt-2">조리방법 :</p>
+              <ul>
+                {localSelectedPost.instructions.map((instruction, index) => (
+                  <li key={index}>
+                    {instruction.stepNumber}.{" "}
+                    {instruction.instructionDescription}
+                  </li>
+                ))}
+              </ul>
+
               {/* 수정 및 삭제 버튼 */}
-              {localSelectedPost.userId == userId && (
+              {localSelectedPost.userId === numUserId && (
                 <div className="flex space-x-2 items-center justify-end mt-3 mr-2">
                   <button
                     onClick={handleUpdatePost}
@@ -229,7 +260,7 @@ function PostModal() {
             </div>
 
             {/* 좋아요 및 댓글 버튼 */}
-            <div className="mt-auto flex justify-center items-center space-x-4">
+            <div className="flex justify-center items-center space-x-4 mt-4">
               <button
                 onClick={handleLike}
                 className="border bg-orange-500 border-modal shadow-modal text-xl px-4 py-2 hover:text-gray-800"
@@ -254,22 +285,24 @@ function PostModal() {
               <p className="text-gray-500">아직 댓글이 없습니다.</p>
             ) : (
               <ul className="space-y-2">
-                {localSelectedPost.reviews.map((comment, index) => (
+                {localSelectedPost.reviews.map((comment) => (
                   <li
-                    key={index}
+                    key={comment.reviewId}
                     className="text-gray-700 flex items-center justify-between"
                   >
-                    <span>{comment.comment}</span>
-                    {comment.userId == userId && (
+                    <span>
+                      {comment.username} 작성 : {comment.comment}
+                    </span>
+                    {comment.username === loginUserName && (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleEditComment(index)}
+                          onClick={() => handleEditComment(comment.reviewId)}
                           className="text-sm text-blue-500 hover:underline"
                         >
                           수정
                         </button>
                         <button
-                          onClick={() => handleDeleteComment(comment.id)}
+                          onClick={() => handleDeleteComment(comment.reviewId)}
                           className="text-sm text-red-500 hover:underline"
                         >
                           삭제

@@ -8,8 +8,6 @@ function UpdatePost() {
 
   // Zustand에서 선택된 게시물 정보 가져오기
   const recipeId = selectedPost?.recipeId;
-  console.log("selectedPost", selectedPost);
-  console.log("업데이트포스트 레시피아이디", recipeId);
 
   // 게시물 목록으로 돌아가는 함수
   const handlePostList = () => {
