@@ -20,6 +20,7 @@ function PostList() {
     favoriteUserPosts,
     openModal,
   } = useStore();
+  const { user } = useLocalStore(); // 사용자 정보
 
   // 검색어 상태 관리]
   const [searchQuery, setSearchQuery] = useState(""); //검색어상태
@@ -38,6 +39,7 @@ function PostList() {
     }
   };
 
+  const numUserId = Number(user.userId); // 사용자 ID (숫자 형변환)
   // 초기 데이터 로드 및 탭 변경 처리
   useEffect(() => {
     if (activeTab === "all") {
@@ -46,9 +48,10 @@ function PostList() {
       fetchUserPosts();
     } else if (activeTab === "favorite") {
       favoriteUserPosts();
-      console.log(activeTab);
+      console.log("활성화된텝:", activeTab);
+      console.log("유저아이디:", numUserId);
     }
-  }, [activeTab, fetchPosts, fetchUserPosts, favoriteUserPosts]);
+  }, [activeTab, fetchPosts, fetchUserPosts, favoriteUserPosts, numUserId]);
 
   // 필터링된 게시물 가져오기
   const getFilteredPosts = () => {
@@ -68,7 +71,7 @@ function PostList() {
       );
     }
 
-    // console.log(`Active Tab: ${activeTab}, Filtered Posts:`, currentPosts); // 확인용
+    console.log(`Active Tab: ${activeTab}, Filtered Posts:`, currentPosts); // 확인용
     return currentPosts;
   };
 
