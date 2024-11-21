@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CheckReviewDto {
     private String comment;
-    private Long userId;
+    private String username;
     private Long reviewId;
     
 }
