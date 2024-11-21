@@ -23,7 +23,7 @@ export const fetchAllRecipes = async () => {
 export const fetchMyRecipes = async () => {
   const token = useLocalStore.getState().getToken();
   if (!token) {
-    throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
+    alert("로그인이 필요합니다.");
   }
   const response = await fetch(`${Base_URL}/myPostAfterAccess`, {
     method: "GET",
@@ -39,7 +39,7 @@ export const fetchMyRecipes = async () => {
 export const fetchFavoriteRecipes = async () => {
   const token = useLocalStore.getState().getToken();
   if (!token) {
-    throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
+    alert("로그인이 필요합니다.");
   }
   const response = await fetch(`${Base_URL}/myFavoriteRecipe`, {
     method: "GET",

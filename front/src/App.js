@@ -12,6 +12,7 @@ import CreatePost from "./components/CreatePost";
 import ProfilePage from "./components/ProfilePage";
 import Footer from "./layout/Footer";
 import UpdatePost from "./components/UpdatePost";
+import useLocalStore from "./store/useLocalStore";
 
 const queryClient = new QueryClient();
 
@@ -34,10 +35,12 @@ function App() {
     window.location.href = "/";
   };
 
+  const clearUser = useLocalStore((state) => state.clearUser);
   const handleLogout = () => {
     setLoggedInEmail("");
     setIsLogin(false);
     localStorage.removeItem("loggedInEmail");
+    clearUser();
     window.location.href = "/";
   };
 
