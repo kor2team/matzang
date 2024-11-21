@@ -32,7 +32,7 @@ function SearchPage() {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/recipes?searchIngredient=${ingredientQuery}`
+        `http://localhost:8080/api/recipes/detailRecipe?searchIngredient=${ingredientQuery}`
       );
       setFilteredRecipes(response.data);
     } catch (error) {
