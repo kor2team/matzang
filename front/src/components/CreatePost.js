@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import useStore from "../store/useStore";
+import { createRecipe } from "../services/api";
+import useLocalStore from "../store/useLocalStore";
 
 function CreatePost() {
-  // Zustand에서 필요한 상태와 함수 가져옴
-  const { addPost, setComponent, loggedInEmail } = useStore();
+  const { setComponent } = useStore();
 
   // 게시물 목록으로 돌아가는 함수
   const handlePostList = () => {
@@ -12,39 +13,89 @@ function CreatePost() {
 
   // 레시피 작성 상태 관리
   const [title, setTitle] = useState(""); // 레시피명 상태
-  const [recipeDescription, setRecipeDescription] = useState(""); //레시피 간략소개
-  const [image, setImage] = useState(null); // 이미지 상태
-  const [ingredients, setIngredients] = useState(""); // 재료 상태
-  const [instructions, setInstructions] = useState(""); // 조리 과정 상태
+  const [recipeDescription, setRecipeDescription] = useState(""); // 레시피 간략소개
+  const [images, setImages] = useState([]); // 이미지 상태
+  const [cookTime, setCookTime] = useState("");
+  const [ingredients, setIngredients] = useState([]); // 재료 상태
+  const [instructions, setInstructions] = useState([]); // 조리 과정 상태
 
-  // 이미지 파일 선택 시 이미지 URL 설정
+  // 이미지 추가 핸들러
   const handleImageChange = (e) => {
-    setImage(URL.createObjectURL(e.target.files[0]));
+    const files = Array.from(e.target.files);
+    const newImages = files.map((file) => URL.createObjectURL(file));
+    setImages((prev) => [...prev, ...newImages]);
+  };
+
+  // 이미지 삭제 핸들러
+  const handleRemoveImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 재료 추가 핸들러
+  const addIngredient = () => {
+    setIngredients((prev) => [...prev, ""]);
+  };
+
+  const updateIngredient = (index, value) => {
+    setIngredients((prev) =>
+      prev.map((item, i) => (i === index ? value : item))
+    );
+  };
+
+  const removeIngredient = (index) => {
+    setIngredients((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 조리 과정 추가 핸들러
+  const addInstruction = () => {
+    setInstructions((prev) => [...prev, ""]);
+  };
+
+  const updateInstruction = (index, value) => {
+    setInstructions((prev) =>
+      prev.map((item, i) => (i === index ? value : item))
+    );
+  };
+
+  const removeInstruction = (index) => {
+    setInstructions((prev) => prev.filter((_, i) => i !== index));
   };
 
   // 게시물 저장 함수
-  const handleSavePost = () => {
-    const newPost = {
-      postId: Date.now(), // 임시 ID 생성 (고유한 ID 생성)
-      userId: loggedInEmail, // 현재 로그인한 사용자의 이메일
-      title,
-      image, // 이미지 URL
-      recipeDescription,
-      ingredients,
-      instructions,
-      likedByUser: false, // 초기 값으로 좋아요가 안 눌린 상태
+  const handleSavePost = async () => {
+    const recipeData = {
+      title: title || "제목 없음",
+      recipeDescription: recipeDescription || "간략 소개 없음",
+      cookTime: parseInt(cookTime, 10) || 0,
+      difficultyLevel: "보통",
+      images,
+      ingredients: ingredients.filter((item) => item.trim() !== ""),
+      instructions: instructions.filter((item) => item.trim() !== ""),
+      categories: [], // 빈 배열로 초기화
     };
 
-    // addPost를 통해 상태에 게시물 추가
-    addPost(newPost);
-    setTimeout(() => {
-      setComponent("postList");
-    }, 2000);
-    // 게시물 목록으로 돌아감
+    const token = useLocalStore.getState().getToken();
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    try {
+      const response = await createRecipe(token, recipeData);
+      if (response.success) {
+        alert("레시피가 성공적으로 저장되었습니다!");
+        setComponent("postList");
+      } else {
+        alert(`레시피 저장 실패: ${response.message || "알 수 없는 오류"}`);
+      }
+    } catch (error) {
+      console.error("레시피 저장 중 오류 발생:", error);
+      alert("레시피 저장 중 문제가 발생했습니다.");
+    }
   };
 
   return (
-    <div className="p-4 bg-white  h-3/4">
+    <div className="p-4 bg-white h-3/4">
       <h2 className="text-2xl text-orange-500 font-bold mb-4">레시피 작성</h2>
 
       {/* 레시피명 입력 */}
@@ -89,17 +140,27 @@ function CreatePost() {
           id="image"
           type="file"
           onChange={handleImageChange}
+          multiple
           className="w-full p-2 rounded-sm mt-2 border border-orange-500 bg-white"
         />
-        {image && (
-          <div className="mt-2">
-            <img
-              src={image}
-              alt="레시피 이미지"
-              className="w-32 h-32 object-cover"
-            />
-          </div>
-        )}
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {images.map((imgUrl, index) => (
+            <div key={index} className="relative">
+              <img
+                src={imgUrl}
+                alt={`레시피 이미지 ${index + 1}`}
+                className="w-32 h-32 object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => handleRemoveImage(index)}
+                className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 재료 입력 */}
@@ -107,14 +168,31 @@ function CreatePost() {
         <label htmlFor="ingredients" className="text-orange-500 font-bold">
           재료
         </label>
-        <textarea
-          id="ingredients"
-          value={ingredients}
-          onChange={(e) => setIngredients(e.target.value)}
-          className="w-full p-2 rounded-sm mt-2 border border-orange-500 bg-white"
-          rows="4"
-          placeholder="필요한 재료를 입력하세요"
-        />
+        {ingredients.map((ingredient, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
+            <input
+              type="text"
+              value={ingredient}
+              onChange={(e) => updateIngredient(index, e.target.value)}
+              className="w-full p-2 rounded-sm border border-orange-500 bg-white"
+              placeholder="재료를 입력하세요"
+            />
+            <button
+              type="button"
+              onClick={() => removeIngredient(index)}
+              className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
+            >
+              <span class="material-symbols-outlined">delete_forever</span>
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addIngredient}
+          className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
+        >
+          <span class="material-symbols-outlined">add</span>
+        </button>
       </div>
 
       {/* 조리 과정 입력 */}
@@ -122,17 +200,34 @@ function CreatePost() {
         <label htmlFor="instructions" className="text-orange-500 font-bold">
           조리 과정
         </label>
-        <textarea
-          id="instructions"
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          className="w-full p-2 rounded-sm mt-2 border border-orange-500 bg-white"
-          rows="6"
-          placeholder="조리 과정을 입력하세요"
-        />
+        {instructions.map((instruction, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
+            <textarea
+              value={instruction}
+              onChange={(e) => updateInstruction(index, e.target.value)}
+              className="w-full p-2 rounded-sm border border-orange-500 bg-white"
+              placeholder="조리 과정을 입력하세요"
+              rows="2"
+            />
+            <button
+              type="button"
+              onClick={() => removeInstruction(index)}
+              className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
+            >
+              <span class="material-symbols-outlined">delete_forever</span>
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addInstruction}
+          className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
+        >
+          <span class="material-symbols-outlined">add</span>
+        </button>
       </div>
 
-      {/* 버튼들 */}
+      {/* 저장 및 돌아가기 버튼 */}
       <div className="flex flex-wrap justify-start gap-2">
         <button
           type="submit"
@@ -143,7 +238,7 @@ function CreatePost() {
         </button>
         <button
           onClick={handlePostList}
-          className="bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-full shadow-lg fixed bottom-4 right-4 md:p-3 md:bottom-6 md:right-6 lg:p-4 lg:bottom-4 lg:right-4"
+          className="bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-full shadow-lg fixed bottom-4 right-4"
         >
           돌아가기
         </button>

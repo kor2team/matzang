@@ -1,96 +1,186 @@
 import useStore from "../store/useStore";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  deleteRecipe,
+  addFavorite,
+  removeFavorite,
+  createReview,
+  updateReview,
+  deleteReview,
+} from "../services/api";
+import useLocalStore from "../store/useLocalStore";
 
-function PostModal({ post }) {
-  // Zustand 상태 및 액션 가져오기
-  const {
-    isModalOpen, // 모달의 열림 상태
-    closeModal, // 모달을 닫는 함수
-    deletePost, // 게시물을 삭제하는 함수
-    selectedPost, // 선택된 게시물 정보
-    loggedInEmail, // 로그인된 사용자의 이메일
-    comments, // 댓글 상태
-    addComment, // 댓글 추가 함수
-    editComment, // 댓글 수정 함수
-    deleteComment, // 댓글 삭제 함수
-    setComponent, // 현재 활성 컴포넌트 변경 함수
-    setSelectedPost, // 선택된 게시물 설정 함수
-  } = useStore();
+function PostModal() {
+  // **Global 상태 및 유틸리티 함수 가져오기**
+  const { isModalOpen, closeModal, selectedPost, setComponent, fetchPosts } =
+    useStore(); // 모달 관련 상태와 메서드
+  const recipeId = String(selectedPost?.recipeId); // 선택된 게시물의 ID
+  const { user } = useLocalStore(); // 사용자 정보
+  const numUserId = Number(user.userId); // 사용자 ID (숫자 형변환)
+  const loginUserName = user.userName;
 
-  // 로컬 상태 관리: 좋아요 수, 좋아요 여부, 새 댓글, 댓글 표시 여부
-  const [newLike, setNewLike] = useState(0); // 좋아요 수 상태
-  const [likedByUser, setLikedByUser] = useState(false); // 유저가 좋아요를 눌렀는지 여부
-  const [newComment, setNewComment] = useState(""); // 새로운 댓글 입력 상태
-  const [showComments, setShowComments] = useState(false); // 댓글 표시 여부 상태
+  // **Local 상태 선언**
+  const [newComment, setNewComment] = useState(""); // 새로운 댓글 입력 값
+  const [likedByUser, setLikedByUser] = useState(
+    selectedPost?.favorite || false
+  ); // 좋아요 상태
+  const [likesCount, setLikesCount] = useState(
+    selectedPost?.favoriteCount || 0
+  ); // 좋아요 수
+  const [showComments, setShowComments] = useState(false); // 댓글 섹션 표시 여부
+  const [localSelectedPost, setLocalSelectedPost] = useState(selectedPost); // 선택된 게시물의 로컬 상태
+  //유저내임 상태
+  // **Handlers**
 
-  // 현재 모달에 표시할 게시물의 댓글들 (전역 상태에서 불러옴)
-  const postComments = comments[selectedPost?.id] || [];
+  // 댓글 추가 핸들러
+  const handleAddComment = useCallback(
+    async (e) => {
+      e.preventDefault();
+      const token = useLocalStore.getState().getToken();
+      if (!newComment.trim()) return;
 
-  // 새로운 댓글 추가 핸들러
-  const handleAddComment = (e) => {
-    e.preventDefault();
-    if (newComment.trim() === "") return; // 빈 댓글은 추가하지 않음
+      try {
+        // 댓글 추가 API 호출
+        await createReview(token, recipeId, {
+          review: newComment,
+        });
 
-    // 전역 상태의 addComment 호출하여 댓글 추가
-    addComment(selectedPost.id, newComment, loggedInEmail);
-    setNewComment(""); // 입력 필드 초기화
-  };
+        // 댓글 추가 후 전체 게시물 갱신
+        await fetchPosts(); // 전체 게시물 다시 불러오기
 
+        // 댓글 추가 성공 후 selectedPost를 새로 갱신
+        const updatedPost = useStore
+          .getState()
+          .posts.find((post) => post.recipeId === Number(recipeId));
+        setLocalSelectedPost(updatedPost); // 로컬 상태 갱신
+
+        // 댓글 추가 성공 시, 유저 이름과 댓글 내용을 로컬 상태에 반영
+        setNewComment(""); // 입력 필드 초기화=
+      } catch (error) {
+        console.error("댓글 추가 중 오류 발생:", error);
+      }
+    },
+    [newComment, recipeId, fetchPosts, setLocalSelectedPost]
+  );
   // 댓글 수정 핸들러
-  const handleEditComment = (commentId) => {
-    const editedText = prompt("댓글을 수정하세요:");
-    if (editedText) {
-      editComment(selectedPost.id, commentId, editedText); // 전역 상태의 editComment 호출하여 댓글 수정
-    }
-  };
+  const handleEditComment = useCallback(
+    async (reviewId) => {
+      const updatedText = prompt("댓글을 수정하세요:"); // 사용자 입력
+      const token = useLocalStore.getState().getToken(); // 사용자 토큰
+
+      if (updatedText) {
+        try {
+          await updateReview(token, reviewId, { review: updatedText }); // 서버 요청
+          const updatedReviews = localSelectedPost.reviews.map((review) =>
+            review.reviewId === reviewId
+              ? { ...review, comment: updatedText }
+              : review
+          );
+          setLocalSelectedPost({
+            ...localSelectedPost,
+            reviews: updatedReviews,
+          }); // 상태 업데이트
+        } catch (error) {
+          console.error("댓글 수정 중 오류 발생:", error);
+        }
+      }
+    },
+    [localSelectedPost]
+  );
 
   // 댓글 삭제 핸들러
-  const handleDeleteComment = (commentId) => {
-    deleteComment(selectedPost.id, commentId); // 전역 상태의 deleteComment 호출하여 댓글 삭제
-  };
-
-  // 좋아요 버튼 클릭 핸들러
-  const handleLike = () => {
-    // 좋아요를 누르면 상태 변경
-    if (likedByUser) {
-      setNewLike(newLike - 1); // 좋아요 취소: 수 감소
-      setLikedByUser(false); // 좋아요 취소 상태로 변경
-    } else {
-      setNewLike(newLike + 1); // 좋아요 추가: 수 증가
-      setLikedByUser(true); // 좋아요 상태로 변경
+  const handleDeleteComment = useCallback(
+    async (reviewId) => {
+      const token = useLocalStore.getState().getToken(); // 사용자 토큰
+      try {
+        await deleteReview(token, reviewId); // 서버 요청
+        const updatedReviews = localSelectedPost.reviews.filter(
+          (review) => review.reviewId !== reviewId
+        );
+        setLocalSelectedPost({
+          ...localSelectedPost,
+          reviews: updatedReviews,
+        }); // 상태 업데이트
+      } catch (error) {
+        console.error("댓글 삭제 중 오류 발생:", error);
+      }
+    },
+    [localSelectedPost]
+  );
+  // 좋아요 처리 핸들러
+  const handleLike = useCallback(async () => {
+    const token = useLocalStore.getState().getToken(); // 사용자 토큰
+    console.log(token);
+    console.log(recipeId);
+    console.log(typeof recipeId);
+    if (!token) {
+      console.error("토큰이 없습니다. 로그인이 필요합니다.");
+      return;
     }
-  };
-
-  // 모달이 열려 있지 않거나 선택된 게시물이 없으면 null 반환
-  if (!isModalOpen || !selectedPost) return null;
-
-  // 수정 버튼 클릭 핸들러: 선택된 게시물 설정 후 컴포넌트를 updatePost로 전환
-  const handleUpdatePost = (post) => {
-    setSelectedPost(post); // selectedPost 설정
-
-    // 약간의 지연 후 컴포넌트 전환
-    setTimeout(() => {
-      setComponent("updatePost");
-      closeModal();
-    }, 100);
-  };
-
-  // 삭제 버튼 클릭 핸들러: 선택된 게시물을 삭제하고 모달 닫기
-  const handleDeletePost = () => {
-    if (selectedPost) {
-      deletePost(selectedPost.recepiId);
-      closeModal(); // 삭제 후 모달 닫기
+    try {
+      if (likedByUser) {
+        await removeFavorite(token, recipeId); // 서버 요청 (좋아요 해제)
+        setLikesCount((prev) => prev - 1);
+        setLikedByUser(false);
+      } else {
+        await addFavorite(token, recipeId); // 서버 요청 (좋아요 추가)
+        setLikesCount((prev) => prev + 1);
+        setLikedByUser(true);
+      }
+    } catch (error) {
+      console.error("좋아요 처리 중 오류 발생:", error);
     }
-  };
+  }, [likedByUser, recipeId]);
+
+  // 게시물 삭제 핸들러
+  const handleDeletePost = useCallback(async () => {
+    const token = useLocalStore.getState().getToken(); // 사용자 토큰
+    try {
+      await deleteRecipe(token, recipeId); // 서버 요청
+      closeModal(); // 모달 닫기
+      fetchPosts(); // 게시물 목록 갱신
+    } catch (error) {
+      console.error("게시물 삭제 중 오류 발생:", error);
+    }
+  }, [recipeId, closeModal, fetchPosts]);
+
+  // 게시물 수정 핸들러
+  const handleUpdatePost = useCallback(() => {
+    setComponent("updatePost"); // 수정 모드로 전환
+    closeModal(); // 모달 닫기
+  }, [setComponent, closeModal]);
+
+  // 모달 닫기 핸들러
+  const handleCloseModal = useCallback(() => {
+    setNewComment(""); // 입력값 초기화
+    closeModal(); // 모달 닫기
+  }, [closeModal]);
+
+  // **Effects**
+
+  // 모달이 열릴 때 선택된 게시물 상태 초기화
+  useEffect(() => {
+    setLocalSelectedPost(selectedPost);
+  }, [selectedPost]);
+
+  // 좋아요 상태 초기화 (게시물이 변경될 때마다 실행)
+  useEffect(() => {
+    if (localSelectedPost) {
+      setLikesCount(localSelectedPost.favoriteCount || 0);
+      setLikedByUser(localSelectedPost.favorite || false);
+    }
+  }, [localSelectedPost]);
+
+  // **조건부 렌더링: 모달이 닫혀있거나 게시물이 없으면 렌더링 중단**
+  if (!isModalOpen || !localSelectedPost) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-lg flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-md shadow-modal relative max-w-4xl w-full flex flex-col border border-card">
         {/* 닫기 버튼 */}
         <button
-          onClick={closeModal}
-          className="absolute top-3 right-3 text-white transition bg-orange-500 
-      border-modal shadow-modal text-lg px-2 py-1 text-flex items-center hover:text-gray-800"
+          onClick={handleCloseModal}
+          className="absolute top-3 right-3 text-white transition bg-orange-500 border-modal shadow-modal text-lg px-2 py-1 hover:text-gray-800"
         >
           <span className="material-symbols-outlined">close</span>
         </button>
@@ -98,35 +188,63 @@ function PostModal({ post }) {
         <div className="flex flex-row h-full">
           {/* 왼쪽: 이미지 */}
           <div className="w-3/5 h-full">
-            <img
-              src={selectedPost.image}
-              alt={selectedPost.title}
-              className="w-full h-full object-cover rounded-md shadow-card"
-            />
+            {localSelectedPost.img && localSelectedPost.img.length > 0 ? (
+              // img 배열이 비어있지 않을 경우
+              <div className="grid grid-cols-1 gap-2">
+                {localSelectedPost.img.map((imgUrl, index) => (
+                  <img
+                    key={index}
+                    src={imgUrl}
+                    alt={`${localSelectedPost.title} - ${index + 1}`}
+                    className="w-full h-auto object-cover rounded-md shadow-card"
+                  />
+                ))}
+              </div>
+            ) : (
+              // img 배열이 비어있을 경우 기본 이미지 렌더링
+              <img
+                src="https://via.placeholder.com/150" // 기본 이미지 URL
+                alt="Default"
+                className="w-full h-full object-cover rounded-md shadow-card"
+              />
+            )}
           </div>
 
           {/* 오른쪽: 제목, 설명, 좋아요 및 댓글 버튼 */}
-          <div className="w-2/5 h-maxh p-4 flex flex-col">
-            {/* 내용 섹션 */}
+          <div className="w-2/5 p-4 flex flex-col">
+            {/* 게시물 내용 */}
             <div className="flex-1">
               <h2 className="text-xl font-bold mb-4 text-gray-800 text-center">
-                {selectedPost.title}
+                {localSelectedPost.title}
               </h2>
               <p className="text-gray-700 pb-2">
-                {selectedPost.recipeDescription}
+                {localSelectedPost.recipeDescription}
               </p>
               <p className="text-gray-700 pb-2">
-                재료 : {selectedPost.ingredients}
+                조리시간 : {localSelectedPost.cookTime}
               </p>
-              <p className="text-gray-700 pb-2">
-                요리방법 : {selectedPost.instructions}
-              </p>
+              <p className="text-gray-700 pb-2">재료 :</p>
+              <ul>
+                {localSelectedPost.ingredients.map((ingredient, index) => (
+                  <li key={index}>{ingredient.ingredientName}</li>
+                ))}
+              </ul>
 
-              {/* 수정 및 삭제 버튼 - 작성자에게만 표시 */}
-              {selectedPost.userId === loggedInEmail && (
+              <p className="text-gray-700 pb-2 mt-2">조리방법 :</p>
+              <ul>
+                {localSelectedPost.instructions.map((instruction, index) => (
+                  <li key={index}>
+                    {instruction.stepNumber}.{" "}
+                    {instruction.instructionDescription}
+                  </li>
+                ))}
+              </ul>
+
+              {/* 수정 및 삭제 버튼 */}
+              {localSelectedPost.userId === numUserId && (
                 <div className="flex space-x-2 items-center justify-end mt-3 mr-2">
                   <button
-                    onClick={() => handleUpdatePost(post)}
+                    onClick={handleUpdatePost}
                     className="text-sm text-blue-500 hover:underline"
                   >
                     수정
@@ -141,19 +259,19 @@ function PostModal({ post }) {
               )}
             </div>
 
-            {/* 좋아요 및 댓글 버튼 - 하단 중앙 고정 */}
-            <div className="mt-auto flex justify-center items-center space-x-4">
+            {/* 좋아요 및 댓글 버튼 */}
+            <div className="flex justify-center items-center space-x-4 mt-4">
               <button
                 onClick={handleLike}
-                className="border bg-orange-500 border-modal shadow-modal text-xl px-4 py-2 text-flex items-center hover:text-gray-800"
+                className="border bg-orange-500 border-modal shadow-modal text-xl px-4 py-2 hover:text-gray-800"
               >
-                ❤️ <span>{newLike}</span>
+                ❤️ <span>{likesCount}</span>
               </button>
               <button
                 onClick={() => setShowComments(!showComments)}
-                className="border bg-orange-500 border-modal shadow-modal text-xl px-4 py-2 text-flex items-center hover:text-gray-800"
+                className="border bg-orange-500 border-modal shadow-modal text-xl px-4 py-2 hover:text-gray-800"
               >
-                💬 <span>{postComments.length}</span>
+                💬 <span>{localSelectedPost.reviews.length}</span>
               </button>
             </div>
           </div>
@@ -163,26 +281,28 @@ function PostModal({ post }) {
         {showComments && (
           <div className="mt-6 border-t border-card pt-4">
             <h3 className="text-lg font-semibold mb-2 text-gray-800">댓글</h3>
-            {postComments.length === 0 ? (
+            {localSelectedPost.reviews.length === 0 ? (
               <p className="text-gray-500">아직 댓글이 없습니다.</p>
             ) : (
               <ul className="space-y-2">
-                {postComments.map((comment) => (
+                {localSelectedPost.reviews.map((comment) => (
                   <li
-                    key={comment.id}
+                    key={comment.reviewId}
                     className="text-gray-700 flex items-center justify-between"
                   >
-                    <span>{comment.text}</span>
-                    {comment.userId === loggedInEmail && (
+                    <span>
+                      {comment.username} 작성 : {comment.comment}
+                    </span>
+                    {comment.username === loginUserName && (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleEditComment(comment.id)}
+                          onClick={() => handleEditComment(comment.reviewId)}
                           className="text-sm text-blue-500 hover:underline"
                         >
                           수정
                         </button>
                         <button
-                          onClick={() => handleDeleteComment(comment.id)}
+                          onClick={() => handleDeleteComment(comment.reviewId)}
                           className="text-sm text-red-500 hover:underline"
                         >
                           삭제

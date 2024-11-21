@@ -1,32 +1,35 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
 import useStore from "../store/useStore";
 import { useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import useLocalStore from "../store/useLocalStore";
 
 function PostList() {
   const navigate = useNavigate();
 
   // Zustand에서 필요한 상태와 함수 가져오기
-  const {
-    openModal, // 게시물 상세 보기 모달을 여는 함수
-    activeTab, // 현재 활성화된 탭 상태 (전체글, 내가 쓴 글, 좋아요한 글)
-    setActiveTab, // 활성화된 탭 상태를 변경하는 함수
-    filterUserPosts, // 내가 쓴 글 필터링 여부
-    setFilterUserPosts, // 내가 쓴 글 필터링 여부 설정 함수
-    filterLikedPosts, // 좋아요한 글 필터링 여부
-    setFilterLikedPosts, // 좋아요한 글 필터링 여부 설정 함수
-    isLogin, // 로그인 상태 여부
-    setComponent, // 현재 활성 컴포넌트를 변경하는 함수
-    fetchPosts, // 게시물 데이터 가져오는 함수 (상태 관리)
-  } = useStore();
 
-  // 검색어 상태 관리
-  const [searchQuery, setSearchQuery] = useState("");
+  const {
+    activeTab,
+    setComponent,
+    posts,
+    userPosts,
+    favoritePosts,
+    setActiveTab,
+    fetchPosts,
+    fetchUserPosts,
+    favoriteUserPosts,
+    openModal,
+  } = useStore();
+  const { user } = useLocalStore(); // 사용자 정보
+
+  // 검색어 상태 관리]
+  const [searchQuery, setSearchQuery] = useState(""); //검색어상태
   const inputRef = useRef(null); // 입력창 참조
 
   // 게시물 작성 버튼 클릭 시 호출되는 함수
   const handleCreatePost = () => {
-    if (!isLogin) {
+    const token = useLocalStore.getState().getToken(); //zustand에서 현재 토큰 가져오기
+    if (!token) {
       // 로그인 상태가 아니면 경고 메시지를 표시하고 로그인 페이지로 이동
       alert("로그인이 필요한 서비스입니다");
       navigate("/login");
@@ -36,32 +39,43 @@ function PostList() {
     }
   };
 
-  // 무한 스크롤을 위한 useInfiniteQuery 훅 사용
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteQuery({
-      queryKey: ["posts", activeTab], // 쿼리 키로 게시물 데이터 캐싱 및 관리
-      queryFn: fetchPosts, // 게시물 데이터를 가져오는 함수
-      getNextPageParam: (lastPage) => lastPage.nextPage, // 다음 페이지 파라미터 설정
-    });
-
-  // 게시물 필터링 함수
-  const filteredPosts = (posts) => {
-    let filtered = posts;
-
-    if (filterUserPosts) {
-      filtered = filtered.filter((post) => post.userId === "test@example.com");
+  const numUserId = Number(user.userId); // 사용자 ID (숫자 형변환)
+  // 초기 데이터 로드 및 탭 변경 처리
+  useEffect(() => {
+    if (activeTab === "all") {
+      fetchPosts();
+    } else if (activeTab === "user") {
+      fetchUserPosts();
+    } else if (activeTab === "favorite") {
+      favoriteUserPosts();
+      console.log("활성화된텝:", activeTab);
+      console.log("유저아이디:", numUserId);
     }
-    if (filterLikedPosts) {
-      filtered = filtered.filter((post) => post.likedByUser);
+  }, [activeTab, fetchPosts, fetchUserPosts, favoriteUserPosts, numUserId]);
+
+  // 필터링된 게시물 가져오기
+  const getFilteredPosts = () => {
+    let currentPosts;
+
+    if (activeTab === "user") {
+      currentPosts = userPosts;
+    } else if (activeTab === "favorite") {
+      currentPosts = favoritePosts; // favorite 탭의 게시물
+    } else {
+      currentPosts = posts;
     }
+
     if (searchQuery) {
-      filtered = filtered.filter((post) =>
+      currentPosts = currentPosts.filter((post) =>
         post.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    return filtered;
+    console.log(`Active Tab: ${activeTab}, Filtered Posts:`, currentPosts); // 확인용
+    return currentPosts;
   };
+
+  const filteredPosts = getFilteredPosts();
 
   // 검색 아이콘 클릭 시 입력창 포커스
   const handleSearchIconClick = () => {
@@ -91,11 +105,7 @@ function PostList() {
       {/* 게시물 필터링 버튼 */}
       <div className="flex flex-row justify-center mb-5">
         <button
-          onClick={() => {
-            setFilterUserPosts(false);
-            setFilterLikedPosts(false);
-            setActiveTab("all"); // 전체글 보기 탭 활성화
-          }}
+          onClick={() => setActiveTab("all")}
           className={`px-4 py-2 ${
             activeTab === "all" ? "bg-orange-500 text-white" : "bg-gray-200"
           } rounded-md border border-card w-1/4 text-center`}
@@ -106,11 +116,7 @@ function PostList() {
           </div>
         </button>
         <button
-          onClick={() => {
-            setFilterUserPosts(true);
-            setFilterLikedPosts(false);
-            setActiveTab("user"); // 내가 쓴 글 보기 탭 활성화
-          }}
+          onClick={() => setActiveTab("user")}
           className={`px-4 py-2 ${
             activeTab === "user" ? "bg-orange-500 text-white" : "bg-gray-200"
           } border border-card w-1/4 text-center rounded-md`}
@@ -121,13 +127,11 @@ function PostList() {
           </div>
         </button>
         <button
-          onClick={() => {
-            setFilterUserPosts(false);
-            setFilterLikedPosts(true);
-            setActiveTab("liked"); // 좋아요한 글 보기 탭 활성화
-          }}
+          onClick={() => setActiveTab("favorite")}
           className={`px-4 py-2 ${
-            activeTab === "liked" ? "bg-orange-500 text-white" : "bg-gray-200"
+            activeTab === "favorite"
+              ? "bg-orange-500 text-white"
+              : "bg-gray-200"
           } rounded-md border border-card w-1/4 text-center`}
         >
           <div className="flex flex-col items-center">
@@ -139,43 +143,26 @@ function PostList() {
 
       {/* 게시물 리스트 */}
       <div className="p-4 grid grid-cols-2 gap-4 w-full h-4/5 overflow-y-auto">
-        {data?.pages.map((page) =>
-          filteredPosts(page.posts).map((post) => (
-            <div
-              key={post.id}
-              className="bg-white p-4 border border-card rounded-md shadow-card cursor-pointer"
-              onClick={() => openModal(post)}
-            >
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-32 object-cover rounded-md"
-              />
-              <h3 className="text-lg font-semibold mt-2 text-gray-800 text-center">
-                {post.title}
-              </h3>
-              <p className="text-gray-600 mt-1">{post.recipeDescription}</p>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* 더보기 버튼 */}
-      {hasNextPage && (
-        <div className="flex justify-center mt-5">
-          <button
-            onClick={fetchNextPage} // 다음 페이지 로드
-            disabled={isFetchingNextPage}
-            className="text-white bg-orange-500 w-full max-w-md px-4 py-2 rounded shadow-card"
+        {filteredPosts.map((post, index) => (
+          <div
+            key={post.id || index}
+            className="bg-white p-4 border border-card rounded-md shadow-card cursor-pointer"
+            onClick={() => {
+              openModal(post);
+            }}
           >
-            {isFetchingNextPage ? (
-              "로딩중" // 로딩 중일 때 표시
-            ) : (
-              <span className="material-symbols-outlined">add</span>
-            )}
-          </button>
-        </div>
-      )}
+            <img
+              src={post.image}
+              alt={post.title}
+              className="w-full h-32 object-cover rounded-md"
+            />
+            <h3 className="text-lg font-semibold mt-2 text-gray-800 text-center">
+              {post.title}
+            </h3>
+            <p className="text-gray-600 mt-1">{post.recipeDescription}</p>
+          </div>
+        ))}
+      </div>
 
       {/* 게시물 작성 버튼 (우하단 고정) */}
       <button

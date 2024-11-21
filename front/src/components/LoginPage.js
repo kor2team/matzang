@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios"; // axios import 추가
+import useLocalStore from "../store/useLocalStore";
+import { fetchSetUserId } from "../services/api";
 
 function LoginPage({ onLogin }) {
+  const { setUser } = useLocalStore();
   const [email, setEmail] = useState(""); // 이메일 상태
   const [username, setUsername] = useState(""); // 사용자명 상태
   const [password, setPassword] = useState(""); // 비밀번호 상태
@@ -29,7 +32,10 @@ function LoginPage({ onLogin }) {
         // 로컬 스토리지에 JWT 토큰 저장
         localStorage.setItem("authToken", token);
 
+        // 서버에서 userId 가져오기
+        const userId = await fetchSetUserId(token);
         // 로그인 성공 후, 로그인 상태 처리
+        setUser({ token, userName: username, userId });
         onLogin(username);
         alert("로그인 성공!");
       } catch (error) {
