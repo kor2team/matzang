@@ -15,15 +15,36 @@ function CreatePost() {
   const [title, setTitle] = useState(""); // 레시피명 상태
   const [recipeDescription, setRecipeDescription] = useState(""); // 레시피 간략소개
   const [images, setImages] = useState([]); // 이미지 상태
-  const [cookTime, setCookTime] = useState("");
+  const [cookTime, setCookTime] = useState(""); // 조리 시간 상태
   const [ingredients, setIngredients] = useState([]); // 재료 상태
   const [instructions, setInstructions] = useState([]); // 조리 과정 상태
 
   // 이미지 추가 핸들러
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const files = Array.from(e.target.files);
-    const newImages = files.map((file) => URL.createObjectURL(file));
-    setImages((prev) => [...prev, ...newImages]);
+
+    // 업로드할 이미지 파일을 서버로 보냄
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("image", file); // 서버에서 받는 필드 이름
+    });
+
+    try {
+      const response = await fetch("/create-recipe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const imageUrls = data.urls; // 서버에서 반환한 이미지 URL 배열
+        setImages((prev) => [...prev, ...imageUrls]);
+      } else {
+        alert("이미지 업로드 실패");
+      }
+    } catch (error) {
+      console.error("이미지 업로드 중 오류 발생:", error);
+    }
   };
 
   // 이미지 삭제 핸들러
@@ -66,7 +87,7 @@ function CreatePost() {
     const recipeData = {
       title: title || "제목 없음",
       recipeDescription: recipeDescription || "간략 소개 없음",
-      cookTime: parseInt(cookTime, 10) || 0,
+      cookTime: cookTime < 0 ? 0 : parseInt(cookTime, 10) || 0,
       difficultyLevel: "보통",
       images,
       ingredients: ingredients.filter((item) => item.trim() !== ""),
@@ -131,6 +152,24 @@ function CreatePost() {
         />
       </div>
 
+      {/* 조리 시간 입력 */}
+      <div className="mb-4">
+        <label htmlFor="cookTime" className="text-orange-500 font-bold">
+          조리 시간 (분)
+        </label>
+        <input
+          id="cookTime"
+          type="number"
+          value={cookTime}
+          onChange={(e) => {
+            const value = Math.max(0, e.target.value); // 음수 방지, 최소값 0
+            setCookTime(value);
+          }}
+          className="w-full p-2 rounded-sm mt-2 border border-orange-500 bg-white"
+          placeholder="예상 조리 시간을 입력하세요 (분)"
+        />
+      </div>
+
       {/* 이미지 첨부 */}
       <div className="mb-4">
         <label htmlFor="image" className="text-orange-500 font-bold">
@@ -153,7 +192,7 @@ function CreatePost() {
               />
               <button
                 type="button"
-                onClick={() => handleRemoveImage(index)}
+                onClick={() => handleRemoveImage(index)} // 이미지 삭제 핸들러 호출
                 className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
               >
                 ✕
@@ -182,7 +221,7 @@ function CreatePost() {
               onClick={() => removeIngredient(index)}
               className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
             >
-              <span class="material-symbols-outlined">delete_forever</span>
+              <span className="material-symbols-outlined">delete_forever</span>
             </button>
           </div>
         ))}
@@ -191,7 +230,7 @@ function CreatePost() {
           onClick={addIngredient}
           className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
         >
-          <span class="material-symbols-outlined">add</span>
+          <span className="material-symbols-outlined">add</span>
         </button>
       </div>
 
@@ -214,7 +253,7 @@ function CreatePost() {
               onClick={() => removeInstruction(index)}
               className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
             >
-              <span class="material-symbols-outlined">delete_forever</span>
+              <span className="material-symbols-outlined">delete_forever</span>
             </button>
           </div>
         ))}
@@ -223,7 +262,7 @@ function CreatePost() {
           onClick={addInstruction}
           className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
         >
-          <span class="material-symbols-outlined">add</span>
+          <span className="material-symbols-outlined">add</span>
         </button>
       </div>
 
@@ -234,9 +273,10 @@ function CreatePost() {
           onClick={handleSavePost}
           className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-sm shadow-lg"
         >
-          저장하기
+          저장
         </button>
         <button
+          type="button"
           onClick={handlePostList}
           className="bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-full shadow-lg fixed bottom-4 right-4"
         >
