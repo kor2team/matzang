@@ -1,14 +1,13 @@
 package matnam_zang.demo.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 
 import matnam_zang.demo.dto.BoardRecipeDto;
@@ -108,11 +107,11 @@ public class BoardServiceTest {
 
         CheckReviewDto mockReviews1 = new CheckReviewDto();
         mockReviews1.setComment("사과 레시피에 대한 코멘트입니다.");
-        mockReviews1.setUserId(1L);
+        //mockReviews1.setUsername("사과");
         
         CheckReviewDto mockReviews2 = new CheckReviewDto();
         mockReviews2.setComment("사과 레시피에 대한 두번째 코멘트입니다.");
-        mockReviews2.setUserId(2L);
+        //mockReviews2.setUsername("수박");
 
         when(recipeRepository.findAll()).thenReturn(List.of(mockRecipe));
         when(imageRepository.findAll()).thenReturn(List.of(mockImage1, mockImage2));
