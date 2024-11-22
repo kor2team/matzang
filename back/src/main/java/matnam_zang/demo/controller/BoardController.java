@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,9 +34,9 @@ public class BoardController {
 
     // 전체 레시피 내부 확인
     @GetMapping("/getRecipePostAfterAccess")
-    public ResponseEntity<?> findUserRecipe(){
+    public ResponseEntity<?> findUserRecipe(@RequestHeader("Authorization") String token){
         try{
-            List<BoardRecipeDto> findUserRecipe = boardService.getRecipePostAfterAccess();
+            List<BoardRecipeDto> findUserRecipe = boardService.getRecipePostAfterAccess(token);
             return ResponseEntity.ok(findUserRecipe);
         }catch(RuntimeException e){
             return ResponseEntity.badRequest().body("Error creating recipe : " + e.getMessage());

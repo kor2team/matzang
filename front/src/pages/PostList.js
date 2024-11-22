@@ -48,8 +48,6 @@ function PostList() {
       fetchUserPosts();
     } else if (activeTab === "favorite") {
       favoriteUserPosts();
-      // console.log("활성화된텝:", activeTab);
-      // console.log("유저아이디:", numUserId);
     }
   }, [activeTab, fetchPosts, fetchUserPosts, favoriteUserPosts, numUserId]);
 
@@ -71,7 +69,6 @@ function PostList() {
       );
     }
 
-    // console.log(`Active Tab: ${activeTab}, Filtered Posts:`, currentPosts); // 확인용
     return currentPosts;
   };
 

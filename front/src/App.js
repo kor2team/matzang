@@ -35,12 +35,10 @@ function App() {
     window.location.href = "/";
   };
 
-  const clearUser = useLocalStore((state) => state.clearUser);
   const handleLogout = () => {
     setLoggedInEmail("");
     setIsLogin(false);
     localStorage.removeItem("loggedInEmail");
-    clearUser();
     window.location.href = "/";
   };
 
@@ -48,6 +46,10 @@ function App() {
   const setComponent = useStore((state) => state.setComponent);
 
   const handlePostList = () => {
+    const token = useLocalStore.getState().getToken();
+    if (!token) {
+      alert("로그인이 필요합니다. 토큰이 없습니다.");
+    }
     setComponent("postList");
   };
 

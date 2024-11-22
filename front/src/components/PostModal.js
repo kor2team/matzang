@@ -37,6 +37,9 @@ function PostModal() {
     async (e) => {
       e.preventDefault();
       const token = useLocalStore.getState().getToken();
+      if (!token) {
+        alert("로그인이 필요합니다.");
+      }
       if (!newComment.trim()) return;
 
       try {
@@ -111,8 +114,7 @@ function PostModal() {
   const handleLike = useCallback(async () => {
     const token = useLocalStore.getState().getToken(); // 사용자 토큰
     if (!token) {
-      console.error("토큰이 없습니다. 로그인이 필요합니다.");
-      console.log(numUserId);
+      alert("로그인이 필요합니다.");
       return;
     }
     try {
@@ -128,7 +130,7 @@ function PostModal() {
     } catch (error) {
       console.error("좋아요 처리 중 오류 발생:", error);
     }
-  }, [likedByUser, recipeId, numUserId]);
+  }, [likedByUser, recipeId]);
 
   // 게시물 삭제 핸들러
   const handleDeletePost = useCallback(async () => {
@@ -168,7 +170,7 @@ function PostModal() {
       setLikedByUser(localSelectedPost.favorite || false);
     }
   }, [localSelectedPost]);
-  console.log(localSelectedPost);
+
   // **조건부 렌더링: 모달이 닫혀있거나 게시물이 없으면 렌더링 중단**
   if (!isModalOpen || !localSelectedPost) return null;
 
@@ -211,7 +213,7 @@ function PostModal() {
           {/* 오른쪽: 제목, 설명, 좋아요 및 댓글 버튼 */}
           <div className="w-2/5 p-4 flex flex-col">
             {/* 게시물 내용 */}
-            <div className="flex-1 overflow-y-auto max-h-96">
+            <div className="flex-1">
               <h2 className="text-xl font-bold mb-4 text-gray-800 text-center">
                 {localSelectedPost.title}
               </h2>
@@ -237,38 +239,56 @@ function PostModal() {
                   </li>
                 ))}
               </ul>
-            </div>
 
-            {/* 좋아요 및 댓글 버튼 */}
-            <div className="flex justify-center items-center space-x-4 mt-4">
               {/* 수정 및 삭제 버튼 */}
               {localSelectedPost.userId === numUserId && (
-                <div className="flex space-x-2 items-center justify-center px-4 py-2">
+                <div className="flex space-x-2 items-center justify-end mt-3 mr-2">
                   <button
                     onClick={handleUpdatePost}
-                    className="text-sm text-blue-500 hover:underline hover:text-gray-800"
+                    className="text-sm text-blue-500 hover:underline"
                   >
                     수정
                   </button>
                   <button
                     onClick={handleDeletePost}
-                    className="text-sm text-red-500 hover:underline hover:text-gray-800"
+                    className="text-sm text-red-500 hover:underline"
                   >
                     삭제
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* 좋아요 및 댓글 버튼 */}
+            <div className="flex justify-center items-center space-x-4 mt-4">
+              {/* 좋아요 버튼 */}
               <button
                 onClick={handleLike}
-                className="border bg-orange-500 border-modal shadow-modal text-sm px-4 py-2 hover:text-gray-800"
+                className="flex flex-col items-center justify-center w-20 h-15 bg-orange-500 text-white rounded shadow-md hover:bg-orange-600"
               >
-                ❤️ <span>{likesCount}</span>
+                {likedByUser ? (
+                  <span className="material-symbols-outlined text-4xl text-red-700">
+                    heart_broken
+                  </span>
+                ) : (
+                  <span className="material-symbols-outlined text-4xl text-red-700">
+                    favorite
+                  </span>
+                )}
+                <span className="text-lg">{likesCount}</span>
               </button>
+
+              {/* 댓글 버튼 */}
               <button
                 onClick={() => setShowComments(!showComments)}
-                className="border bg-orange-500 border-modal shadow-modal text-sm px-4 py-2 hover:text-gray-800"
+                className="flex flex-col items-center justify-center w-20 h-15 bg-orange-500 text-white rounded shadow-md hover:bg-orange-600"
               >
-                💬 <span>{localSelectedPost.reviews.length}</span>
+                <span className="material-symbols-outlined text-4xl">
+                  tooltip
+                </span>
+                <span className="text-lg">
+                  {localSelectedPost.reviews.length}
+                </span>
               </button>
             </div>
           </div>
