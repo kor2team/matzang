@@ -1,12 +1,12 @@
 import useLocalStore from "../store/useLocalStore"; // 상태 관리 파일 가져오기
 
 // API 기본 URL 설정
-const Base_URL = "http://localhost:8080/api/auth"; // 기본 URL 수정
+const Base_URL = "http://3.38.13.94:8080/api/auth"; // 기본 URL 수정
 
 //레시피 전체보기 목록
 export const fetchAllRecipes = async () => {
   const response = await fetch(
-    "http://localhost:8080/api/all/getRecipePostAfterAccess",
+    "http://3.38.13.94:8080/api/all/getRecipePostAfterAccess",
     {
       method: "GET",
       headers: {

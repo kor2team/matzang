@@ -13,7 +13,7 @@ function LoginPage({ onLogin }) {
   const [error, setError] = useState(""); // 에러 메시지 상태
 
   // 백엔드 URL 설정
-  const BACKEND_URL = "http://localhost:8080/api/auth";
+  const BACKEND_URL = "http://3.38.13.94:8080/api/auth";
 
   // 로그인 처리 함수
   const handleLogin = async (e) => {

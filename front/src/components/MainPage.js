@@ -17,7 +17,7 @@ const MainPage = () => {
   // 레시피 데이터 로딩
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/recipes") // API URL을 맞춰주세요
+      .get("http://3.38.13.94:8080/api/recipes") // API URL을 맞춰주세요
       .then((response) => {
         setRecipes(response.data); // 받아온 레시피 데이터를 상태에 저장
         setLoading(false); // 데이터 로딩 완료 시 로딩 상태를 false로 설정
@@ -58,7 +58,7 @@ const MainPage = () => {
     const formattedSearchName = searchName.replace(/\s+/g, ""); // 공백 제거
     axios
       .get(
-        `http://localhost:8080/api/youtube/${encodeURIComponent(
+        `http://3.38.13.94:8080/api/youtube/${encodeURIComponent(
           formattedSearchName
         )}`
       )
