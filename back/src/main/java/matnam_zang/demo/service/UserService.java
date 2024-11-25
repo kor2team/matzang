@@ -574,9 +574,7 @@ public class UserService {
             User user = optionalUser.get();
         
             // 사용자 ID로 필터링하여 레시피를 조회합니다.
-            List<Recipe> recipes = recipeRepository.findAll().stream()
-                    .filter(recipe -> recipe.getUser().getUserId().equals(user.getUserId()))
-                    .collect(Collectors.toList());
+            List<Recipe> recipes = recipeRepository.findAll();
         
             // 각 레시피에 대한 이미지를 미리 조회합니다.
             Map<Long, List<Image>> recipeImagesMap = imageRepository.findAll().stream()

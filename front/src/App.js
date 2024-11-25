@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Link,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import MainPage from "./components/MainPage";
 import SearchPage from "./components/SearchPage";
 import logo from "./assets/svg/logo.jpg";
@@ -56,7 +50,7 @@ function App() {
     const token = useLocalStore.getState().getToken();
     if (!token) {
       alert("로그인이 필요합니다.");
-      Navigate("/login"); // 로그인 페이지로 이동
+      // 로그아웃 처리 후 로그인 화면으로 리디렉션
       return;
     }
     setComponent("postList");
@@ -151,15 +145,11 @@ function App() {
                 <Route
                   path="/board"
                   element={
-                    useLocalStore.getState().getToken() ? (
-                      <div>
-                        {currentComponent === "postList" && <PostList />}
-                        {currentComponent === "createPost" && <CreatePost />}
-                        {currentComponent === "updatePost" && <UpdatePost />}
-                      </div>
-                    ) : (
-                      <Navigate to="/login" replace={true} />
-                    )
+                    <div>
+                      {currentComponent === "postList" && <PostList />}
+                      {currentComponent === "createPost" && <CreatePost />}
+                      {currentComponent === "updatePost" && <UpdatePost />}
+                    </div>
                   }
                 />
                 <Route
