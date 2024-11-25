@@ -12,6 +12,7 @@ import CreatePost from "./components/CreatePost";
 import ProfilePage from "./components/ProfilePage";
 import Footer from "./layout/Footer";
 import UpdatePost from "./components/UpdatePost";
+import useLocalStore from "./store/useLocalStore";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    useLocalStore.getState().clearUser();
     setLoggedInEmail("");
     setIsLogin(false);
     localStorage.removeItem("loggedInEmail");
@@ -45,6 +47,11 @@ function App() {
   const setComponent = useStore((state) => state.setComponent);
 
   const handlePostList = () => {
+    const token = useLocalStore.getState().getToken();
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
     setComponent("postList");
   };
 

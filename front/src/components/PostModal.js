@@ -37,6 +37,9 @@ function PostModal() {
     async (e) => {
       e.preventDefault();
       const token = useLocalStore.getState().getToken();
+      if (!token) {
+        alert("로그인이 필요합니다.");
+      }
       if (!newComment.trim()) return;
 
       try {
@@ -110,11 +113,8 @@ function PostModal() {
   // 좋아요 처리 핸들러
   const handleLike = useCallback(async () => {
     const token = useLocalStore.getState().getToken(); // 사용자 토큰
-    console.log(token);
-    console.log(recipeId);
-    console.log(typeof recipeId);
     if (!token) {
-      console.error("토큰이 없습니다. 로그인이 필요합니다.");
+      alert("로그인이 필요합니다.");
       return;
     }
     try {
@@ -261,17 +261,34 @@ function PostModal() {
 
             {/* 좋아요 및 댓글 버튼 */}
             <div className="flex justify-center items-center space-x-4 mt-4">
+              {/* 좋아요 버튼 */}
               <button
                 onClick={handleLike}
-                className="border bg-orange-500 border-modal shadow-modal text-xl px-4 py-2 hover:text-gray-800"
+                className="flex flex-col items-center justify-center w-20 h-15 bg-orange-500 text-white rounded shadow-md hover:bg-orange-600"
               >
-                ❤️ <span>{likesCount}</span>
+                {likedByUser ? (
+                  <span className="material-symbols-outlined text-4xl text-red-700">
+                    heart_broken
+                  </span>
+                ) : (
+                  <span className="material-symbols-outlined text-4xl text-red-700">
+                    favorite
+                  </span>
+                )}
+                <span className="text-lg">{likesCount}</span>
               </button>
+
+              {/* 댓글 버튼 */}
               <button
                 onClick={() => setShowComments(!showComments)}
-                className="border bg-orange-500 border-modal shadow-modal text-xl px-4 py-2 hover:text-gray-800"
+                className="flex flex-col items-center justify-center w-20 h-15 bg-orange-500 text-white rounded shadow-md hover:bg-orange-600"
               >
-                💬 <span>{localSelectedPost.reviews.length}</span>
+                <span className="material-symbols-outlined text-4xl">
+                  tooltip
+                </span>
+                <span className="text-lg">
+                  {localSelectedPost.reviews.length}
+                </span>
               </button>
             </div>
           </div>

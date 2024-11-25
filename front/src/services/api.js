@@ -5,12 +5,17 @@ const Base_URL = "http://3.38.13.94:8080/api/auth"; // 기본 URL 수정
 
 //레시피 전체보기 목록
 export const fetchAllRecipes = async () => {
+  const token = useLocalStore.getState().getToken();
+  if (!token) {
+    console.log("로그인이 필요합니다. 토큰이 없습니다.");
+  }
   const response = await fetch(
     "http://3.38.13.94:8080/api/all/getRecipePostAfterAccess",
     {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     }
   );
@@ -23,7 +28,7 @@ export const fetchAllRecipes = async () => {
 export const fetchMyRecipes = async () => {
   const token = useLocalStore.getState().getToken();
   if (!token) {
-    throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
+    console.log("로그인이 필요합니다. 토큰이 없습니다.");
   }
   const response = await fetch(`${Base_URL}/myPostAfterAccess`, {
     method: "GET",
@@ -39,7 +44,7 @@ export const fetchMyRecipes = async () => {
 export const fetchFavoriteRecipes = async () => {
   const token = useLocalStore.getState().getToken();
   if (!token) {
-    throw new Error("로그인이 필요합니다. 토큰이 없습니다.");
+    console.log("로그인이 필요합니다. 토큰이 없습니다.");
   }
   const response = await fetch(`${Base_URL}/myFavoriteRecipe`, {
     method: "GET",
@@ -47,9 +52,7 @@ export const fetchFavoriteRecipes = async () => {
       Authorization: `Bearer ${token}`,
     },
   });
-  console.log("Favorite posts response:", response);
   const favoriteData = await response.json();
-  console.log(favoriteData);
   return favoriteData;
 };
 
