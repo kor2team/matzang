@@ -50,7 +50,7 @@ function App() {
     const token = useLocalStore.getState().getToken();
     if (!token) {
       alert("로그인이 필요합니다.");
-      // 로그아웃 처리 후 로그인 화면으로 리디렉션
+      //토큰없이 게시판 접근 불가
       return;
     }
     setComponent("postList");

@@ -597,7 +597,7 @@ public class UserService {
                                     .map(image -> new ImageDto(image.getImageId(), image.getImageUrl()))
                                     .collect(Collectors.toList());
         
-                            // cookTime
+                            // cookTimegit push origin main --force
                             int cookTime = recipeRepository.cookingTime(recipe.getRecipeId());
         
                             List<Ingredient> ingredients = recipeIngredientsMap.getOrDefault(recipe.getRecipeId(), Collections.emptyList());
